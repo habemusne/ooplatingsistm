@@ -58,6 +58,7 @@ ThreadTest1()
 //----------------------------------------------------------------------
 
 Lock *locktest1 = NULL;
+Lock *locktest3 = NULL;
 
 void
 LockThread1(int param)
@@ -84,6 +85,15 @@ LockThread2(int param)
 }
 
 void
+LockThread3(int param)
+{
+    printf("lt1:ac");
+    locktest3->Acquire();
+    printf("lt1:ac");
+    locktest3->Acquire();
+}
+
+void
 LockTest1()
 {
     DEBUG('t', "Entering LockTest1");
@@ -94,6 +104,14 @@ LockTest1()
     t->Fork(LockThread1, 0);
     t = new Thread("two");
     t->Fork(LockThread2, 0);
+}
+
+void
+LockTest3() {
+    DEBUG('t', "Entering LockTest3");
+    locktest3 = new Lock("LockTest3");
+    Thread *t = new Thread("one");
+    t->Fork(LockThread3, 0);
 }
 
 
@@ -107,11 +125,13 @@ ThreadTest()
 {
     switch (testnum) {
     case 1:
-	ThreadTest1();
+	   ThreadTest1();
 	break;
     case 2:
-	LockTest1();
+	    LockTest1();
 	break;
+    case 3:
+        LockTest3();
     default:
 	printf("No test specified.\n");
 	break;
