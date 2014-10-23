@@ -113,7 +113,6 @@ Lock::~Lock() {
 
     delete this->name;
     delete this->queue;
-    delete this->previous_thread;
     this->name = NULL;
     this->queue = NULL;
     this->previous_thread = NULL;
@@ -139,7 +138,7 @@ void Lock::Release() {
     Thread *thread;
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
-    ASSERT(this->held = 1); //Check if case (2) satisfies
+    ASSERT(this->held == 1); //Check if case (2) satisfies
 
     thread = (Thread *)queue->Remove();
     if (thread != NULL)	   // make thread ready, consuming the V immediately
@@ -150,10 +149,44 @@ void Lock::Release() {
 
 }
 
-Condition::Condition(char* debugName) { }
-Condition::~Condition() { }
-void Condition::Wait(Lock* conditionLock) {
-    ASSERT(FALSE);
+Condition::Condition(char* debugName) {
+  this->name = debugname;
+  this->queue = new List;
+  this->signaled = false;
 }
-void Condition::Signal(Lock* conditionLock) { }
-void Condition::Broadcast(Lock* conditionLock) { }
+
+Condition::~Condition() {
+  delete this->name;
+  delete this->queue;
+  this->name = NULL;
+  this->queue = NULL;
+}
+
+void Condition::Wait(Lock* conditionLock) {
+  conditionLock->Release();
+  while (!this->signaled) {
+    this->queue->append((void *) currentThread);
+    currentThread->Sleep();
+  }
+  this->signaled = false;
+}
+
+void Condition::Signal(Lock* conditionLock) {
+  Thread *thread;
+  
+  thread = (Thread *)queue->Remove();
+  if (thread != NULL)
+    scheduler->ReadyToRun(thread);
+  this->signaled = true;
+  conditionLock->Acquire();
+}
+
+void Condition::Broadcast(Lock* conditionLock) {
+  Thread* thread;
+  while (!queue->isEmpty()) {
+    thread = (Thread *) queue->Remove();
+    if (thread != NULL)
+      scheduler->ReadyToRun(thread);
+  }
+  
+}

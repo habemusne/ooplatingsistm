@@ -58,6 +58,10 @@ ThreadTest1()
 //----------------------------------------------------------------------
 
 Lock *locktest1 = NULL;
+Lock *locktest2 = NULL;
+Lock *locktest3 = NULL;
+Lock *locktest4 = NULL;
+
 
 void
 LockThread1(int param)
@@ -74,14 +78,31 @@ LockThread1(int param)
 void
 LockThread2(int param)
 {
-    printf("L2:0\n");
-    locktest1->Acquire();
+    printf("L2:acquire\n");
+    locktest2->Acquire();
+    printf("L2:acquire\n");
+    locktest2->Acquire();
     printf("L2:1\n");
     currentThread->Yield();
     printf("L2:2\n");
-    locktest1->Release();
+    locktest2->Release();
     printf("L2:3\n");
 }
+
+void LockThread3(int param)
+{
+    printf("L3:release\n");
+    locktest3->Release();
+}
+
+void LockThread4(int param)
+{
+    printf("L4:acquire");
+    locktest4->Acquire();
+    printf("L4:delete\n");
+    locktest4->~Lock();
+}
+
 
 void
 LockTest1()
@@ -92,9 +113,43 @@ LockTest1()
 
     Thread *t = new Thread("one");
     t->Fork(LockThread1, 0);
-    t = new Thread("two");
+}
+
+//test2:acquiring the same lock twice
+void LockTest2()
+{
+    DEBUG('t', "Entering LockTest2");
+
+    locktest2 = new Lock("LockTest2");
+
+    Thread *t = new Thread("two");
     t->Fork(LockThread2, 0);
 }
+
+//test3
+void LockTest3()
+{
+    DEBUG('t', "Entering LockTest3");
+
+    locktest3 = new Lock("LockTest3");
+
+    Thread *t = new Thread("three");
+    t->Fork(LockThread3, 0);
+
+}
+
+//test4
+void LockTest4()
+{
+    DEBUG('t', "Entering LockTest4");
+
+    locktest4 = new Lock("LockTest4");
+
+    Thread *t = new Thread("four");
+    t->Fork(LockThread4, 0);
+
+}
+
 
 
 //----------------------------------------------------------------------
@@ -106,15 +161,25 @@ void
 ThreadTest()
 {
     switch (testnum) {
+    case 0:
+	   ThreadTest1();
+	break;
     case 1:
-	ThreadTest1();
+	    LockTest1();
 	break;
     case 2:
-	LockTest1();
+	    LockTest2();
 	break;
+    case 3:
+	    LockTest3();
+	break;
+    case 4:
+	    LockTest4();
+	break;
+
     default:
-	printf("No test specified.\n");
-	break;
+        printf("No test specified.\n");
+        break;
     }
 }
 

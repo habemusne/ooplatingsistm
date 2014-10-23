@@ -140,6 +140,8 @@ public:
 
 private:
     char* name;
+    List* queue;
+    bool signaled;
     // plus some other stuff you'll need to define
 };
 #endif // SYNCH_H
