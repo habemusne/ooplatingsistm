@@ -100,10 +100,55 @@ Semaphore::V()
 // Dummy functions -- so we can compile our later assignments
 // Note -- without a correct implementation of Condition::Wait(),
 // the test case in the network assignment won't work!
-Lock::Lock(char* debugName) {}
-Lock::~Lock() {}
-void Lock::Acquire() {}
-void Lock::Release() {}
+Lock::Lock(char* debugName) {
+    this->held = 0;
+    this->queue = new List;
+    this->name = debugName;
+    this->previous_thread = NULL;
+}
+Lock::~Lock() {
+
+    //Check if case (3) satisfies
+    ASSERT(this->held == 0);
+
+    delete this->name;
+    delete this->queue;
+    delete this->previous_thread;
+    this->name = NULL;
+    this->queue = NULL;
+    this->previous_thread = NULL;
+}
+void Lock::Acquire() {
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
+
+    //Check if case (1) satisfies
+    ASSERT(this->previous_thread != (void *) currentThread);
+
+    this->previous_thread = (void *)currentThread;
+    while (held) { 			// semaphore not available
+        queue->Append((void *)currentThread);	// so go to sleep
+        currentThread->Sleep();
+    }
+    // consume its value
+    held = 1;
+
+    (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
+}
+
+void Lock::Release() {
+    Thread *thread;
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+
+    ASSERT(this->held = 1); //Check if case (2) satisfies
+
+    thread = (Thread *)queue->Remove();
+    if (thread != NULL)	   // make thread ready, consuming the V immediately
+        scheduler->ReadyToRun(thread);
+    held = 0;
+    (void) interrupt->SetLevel(oldLevel);
+
+
+}
 
 Condition::Condition(char* debugName) { }
 Condition::~Condition() { }
