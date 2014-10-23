@@ -24,7 +24,7 @@
 #include "copyright.h"
 #include "synch.h"
 #include "system.h"
-
+#include "assert.h"
 //----------------------------------------------------------------------
 // Semaphore::Semaphore
 // 	Initialize a semaphore, so that it can be used for synchronization.
@@ -100,10 +100,45 @@ Semaphore::V()
 // Dummy functions -- so we can compile our later assignments
 // Note -- without a correct implementation of Condition::Wait(),
 // the test case in the network assignment won't work!
-Lock::Lock(char* debugName) {}
-Lock::~Lock() {}
-void Lock::Acquire() {}
-void Lock::Release() {}
+Lock::Lock(char* debugName) {
+    this->name = debugName;
+    this->held = 0;
+    this->queue = new List;
+}
+Lock::~Lock() {
+    ASSERT(this->held == 1);
+    delete this->name;
+    delete this->queue;
+    this->name = NULL;
+    this->queue = NULL;
+}
+
+
+void Lock::Acquire() {
+    ASSERT(1);
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
+
+    while (held) { 			// semaphore not available
+        queue->Append((void *)currentThread);	// so go to sleep
+        currentThread->Sleep();
+    }
+    // consume its value
+    held = 1;
+
+    (void) interrupt->SetLevel(oldLevel);	// re-enable interrupt
+}
+
+void Lock::Release() {
+    ASSERT(this->held == 1);
+    Thread *thread;
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+
+    thread = (Thread *)queue->Remove();
+    if (thread != NULL)	   // make thread ready, consuming the V immediately
+        scheduler->ReadyToRun(thread);
+    held = 0;
+    (void) interrupt->SetLevel(oldLevel);
+}
 
 Condition::Condition(char* debugName) { }
 Condition::~Condition() { }

@@ -53,6 +53,105 @@ ThreadTest1()
 }
 
 //----------------------------------------------------------------------
+// LockTest1
+//----------------------------------------------------------------------
+
+Lock *locktest1 = NULL;
+Lock *locktest2 = NULL;
+Lock *locktest3 = NULL;
+Lock *locktest4 = NULL;
+
+
+void
+LockThread1(int param)
+{
+    printf("L1:0\n");
+    locktest1->Acquire();
+    printf("L1:1\n");
+    currentThread->Yield();
+    printf("L1:2\n");
+    locktest1->Release();
+    printf("L1:3\n");
+}
+
+void
+LockThread2(int param)
+{
+    printf("L2:acquire\n");
+    locktest2->Acquire();
+    printf("L2:acquire\n");
+    locktest2->Acquire();
+    printf("L2:1\n");
+    currentThread->Yield();
+    printf("L2:2\n");
+    locktest2->Release();
+    printf("L2:3\n");
+}
+
+void LockThread3(int param)
+{
+    printf("L3:release\n");
+    locktest3->Release();
+}
+
+void LockThread4(int param)
+{
+    printf("L4:acquire");
+    locktest4->Acquire();
+    printf("L4:delete\n");
+    locktest4->~Lock();
+}
+
+
+void
+LockTest1()
+{
+    DEBUG('t', "Entering LockTest1");
+
+    locktest1 = new Lock("LockTest1");
+
+    Thread *t = new Thread("one");
+    t->Fork(LockThread1, 0);
+}
+
+//test2:acquiring the same lock twice
+void LockTest2()
+{
+    DEBUG('t', "Entering LockTest2");
+
+    locktest2 = new Lock("LockTest2");
+
+    Thread *t = new Thread("two");
+    t->Fork(LockThread2, 0);
+}
+
+//test3
+void LockTest3()
+{
+    DEBUG('t', "Entering LockTest3");
+
+    locktest3 = new Lock("LockTest3");
+
+    Thread *t = new Thread("three");
+    t->Fork(LockThread3, 0);
+
+}
+
+//test4
+void LockTest4()
+{
+    DEBUG('t', "Entering LockTest4");
+
+    locktest4 = new Lock("LockTest4");
+
+    Thread *t = new Thread("four");
+    t->Fork(LockThread4, 0);
+
+}
+
+
+
+//----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
 //----------------------------------------------------------------------
@@ -61,9 +160,22 @@ void
 ThreadTest()
 {
     switch (testnum) {
+    case 0:
+	   ThreadTest1();
+	break;
     case 1:
-        ThreadTest1();
-        break;
+	    LockTest1();
+	break;
+    case 2:
+	    LockTest2();
+	break;
+    case 3:
+	    LockTest3();
+	break;
+    case 4:
+	    LockTest4();
+	break;
+
     default:
         printf("No test specified.\n");
         break;
