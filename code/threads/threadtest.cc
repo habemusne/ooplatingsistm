@@ -139,6 +139,10 @@ void LockTest3()
 }
 
 //test4
+void CondThread1(int param) {
+  
+}
+
 void LockTest4()
 {
     DEBUG('t', "Entering LockTest4");
@@ -146,11 +150,25 @@ void LockTest4()
     locktest4 = new Lock("LockTest4");
 
     Thread *t = new Thread("four");
-    t->Fork(LockThread4, 0);
+    t->Fork(CondThread1, 0);
 
 }
 
 
+//-----------------------------------//
+//Condition Variable Tests
+//-----------------------------------//
+
+Condition cond1 = NULL;
+Condition cond2 = NULL;
+
+//CV Test 1
+void CVTest1() {
+  DEBUG('t', "Entering CVTest1");
+  cond1 = new Condition("Cond1");
+  Thread *t = new Thread("five");
+  t->Fork();
+}
 
 //----------------------------------------------------------------------
 // ThreadTest
@@ -176,6 +194,8 @@ ThreadTest()
     case 4:
 	    LockTest4();
 	break;
+    case 5:
+      CVTest1();
 
     default:
         printf("No test specified.\n");
