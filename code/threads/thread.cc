@@ -32,9 +32,23 @@
 //	"threadName" is an arbitrary string, useful for debugging.
 //----------------------------------------------------------------------
 
-Thread::Thread(char* threadName, int join = 0)
+Thread::Thread(char* debugName)
 {
-    name = threadName;
+    name = debugName;
+    stackTop = NULL;
+    stack = NULL;
+    status = JUST_CREATED;
+    this->cond = new Condition("cond");
+    this->lock = new Lock("lock");
+
+#ifdef USER_PROGRAM
+    space = NULL;
+#endif
+}
+
+Thread::Thread(char* debugName, int join = 0)
+{
+    name = debugName;
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
@@ -248,7 +262,7 @@ void ThreadPrint(int arg) {
     t->Print();
 }
 
-void Join() {
+void Thread::Join() {
     this->lock->Acquire();
     cond->Wait(this->lock);
     this->lock->Release();

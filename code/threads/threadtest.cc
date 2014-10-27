@@ -145,7 +145,7 @@ void LockTest3()
 
 
 //CondTest1: a thread waits the cond, another signals
-Condition *cond1 = NULL;
+Condition *Cond1 = NULL;
 Lock *LockTest5 = NULL;
 
 void CondThread1(int param) {
@@ -154,7 +154,7 @@ void CondThread1(int param) {
   printf("CT1: acquired. before wait");
   Cond1->Wait(LockTest5);
   printf("CT1: after wait");
-  LockTest->Release();
+  LockTest5->Release();
   printf("CT1: released");
 }
 
@@ -164,7 +164,7 @@ void CondThread2(int param) {
   printf("CT2: acquired. before signal");
   Cond1->Signal(LockTest5);
   printf("CT2: after signal");
-  // LockTest->Release();
+  // LockTest5->Release();
   // printf("CT2: released");
 }
 
@@ -187,11 +187,11 @@ void CondTest1()
 //CondTest2: two threads wait, one signal
 void CondThread3(int param) {
   printf("CT3: acquiring");
-  LockTest->Acquire();
+  LockTest5->Acquire();
   printf("CT3: acquired. before wait");
   Cond1->Wait(LockTest5);
   printf("CT3: after wait");
-  LockTest->Release();
+  LockTest5->Release();
   printf("CT3: released");
 }
 
@@ -201,7 +201,7 @@ void CondThread4(int param) {
   printf("CT4: acquired. before wait");
   Cond1->Wait(LockTest5);
   printf("CT4: after wait");
-  LockTest->Release();
+  LockTest5->Release();
   printf("CT4: released");
 }
 
@@ -211,22 +211,22 @@ void CondThread5(int param) {
   printf("CT5: acquired. before signal");
   Cond1->Signal(LockTest5);
   printf("CT5: after signal");
-  // LockTest->Release();
+  // LockTest5->Release();
   // printf("CT5: released");
 }
 
 void CondTest2()
 {
     DEBUG('t', "Entering CondTest2");
-
+printf("haha");
     LockTest5 = new Lock("CondTest2_lock");
     Cond1 = new Condition("Cond1");
 
     Thread *t = new Thread("three");
     t->Fork(CondThread3, 0);
 
-    Thread *t = new Thread("four");
-    t->Fork(CondThread4, 0);
+    Thread *t1 = new Thread("four");
+    t1->Fork(CondThread4, 0);
 
     t = new Thread("five");
     t->Fork(CondThread5, 0);
@@ -235,7 +235,7 @@ void CondTest2()
 
 //ConTest3: waiting on a condition variable without holding lock
 void CondThread6(int param) {
-    Cond1->wait(LockTest5);
+    Cond1->Wait(LockTest5);
     LockTest5->Release();
 }
 
@@ -287,10 +287,10 @@ void CondTest4() {
     Cond1 = new Condition("Cond1");
     Thread *t = new Thread("seven");
     t->Fork(CondThread7, 0);
-    Thread *t = new Thread("eight");
-    t->Fork(CondThread8, 0);
-    Thread *t = new Thread("nine");
-    t->Fork(CondThread9, 0);
+    Thread *t1 = new Thread("eight");
+    t1->Fork(CondThread8, 0);
+    Thread *t2 = new Thread("nine");
+    t2->Fork(CondThread9, 0);
 }
 
 //CondTest5: signaling to a condition variable with no waiters is a no-op, and future threads that wait will block
@@ -331,10 +331,10 @@ void CondTest5() {
     Cond1 = new Condition("Cond1");
     Thread *t = new Thread("ten");
     t->Fork(CondThread10, 0);
-    Thread *t = new Thread("eleven");
-    t->Fork(CondThread11, 0);
-    Thread *t = new Thread("twelve");
-    t->Fork(CondThread12, 0);
+    Thread *t1 = new Thread("eleven");
+    t1->Fork(CondThread11, 0);
+    Thread *t2 = new Thread("twelve");
+    t2->Fork(CondThread12, 0);
 }
 
 //CondTest6: broadcasting to a condition variable with no waiters is a no-op, and future threads that wait will block
@@ -375,10 +375,10 @@ void CondTest6() {
     Cond1 = new Condition("Cond1");
     Thread *t = new Thread("thirteen");
     t->Fork(CondThread13, 0);
-    Thread *t = new Thread("fourteen");
-    t->Fork(CondThread14, 0);
-    Thread *t = new Thread("fifteen");
-    t->Fork(CondThread15, 0);
+    Thread *t1 = new Thread("fourteen");
+    t1->Fork(CondThread14, 0);
+    Thread *t2 = new Thread("fifteen");
+    t2->Fork(CondThread15, 0);
 }
 
 //TODO
@@ -424,8 +424,8 @@ void CondTest8() {
     Cond1 = new Condition("Cond1");
     Thread *t = new Thread("seventeen");
     t->Fork(CondThread17, 0);
-    Thread *t = new Thread("eighteen");
-    t->Fork(CondThread18, 0);
+    Thread *t1 = new Thread("eighteen");
+    t1->Fork(CondThread18, 0);
 }
 
 
@@ -452,8 +452,151 @@ void CondTest9() {
     Cond1 = new Condition("Cond1");
     Thread *t = new Thread("ninteen");
     t->Fork(CondThread19, 0);
-    Thread *t = new Thread("twenty");
-    t->Fork(CondThread20, 0);
+    Thread *t1 = new Thread("twenty");
+    t1->Fork(CondThread20, 0);
+}
+
+
+//-----------------------------------//
+//Mailbox Tests
+//-----------------------------------//
+
+int m = 1;
+int m1 = 2;
+Mailbox * mailbox1 = NULL;
+void MailboxThread1(int param) {
+   mailbox1->Send(m);
+   printf("Mailbox1:send");
+}
+
+void MailboxThread2(int param) {
+   mailbox1->Receive(&m);
+   printf("Mailbox1:receive");
+}
+
+//same mailbox: first send then receive
+void MTest1(){
+  DEBUG('t', "Entering MTest1");
+  
+  mailbox1 = new Mailbox("Mailbox1");
+  Thread *t = new Thread("mthread 1");
+  t->Fork(MailboxThread1,0);
+  Thread *t1 = new Thread("mthread 2");
+  t1->Fork(MailboxThread2,0);
+}
+
+Mailbox * mailbox2 = NULL;
+void MailboxThread3(int param){
+  mailbox2->Receive(&m1);
+  printf("Mailbox2:receive");
+}
+
+void MailboxThread4(int param){
+  mailbox2->Send(m1);
+  printf("Mailbox2:send");
+}
+
+//diff mailbox: first send then receive
+void MTest2(){
+  DEBUG('t', "Entering MTest2");
+  
+  mailbox1 = new Mailbox("Mailbox1");
+  mailbox2 = new Mailbox("Mailbox2");
+  Thread *t = new Thread("mthread 1");
+  t->Fork(MailboxThread1,0);
+  Thread *t1 = new Thread("mthread 3");
+  t1->Fork(MailboxThread3,0);
+}
+
+
+//same mailbox: first receive then send
+void MTest3(){
+  DEBUG('t', "Entering MTest3");
+  
+  mailbox1 = new Mailbox("Mailbox1");
+  Thread *t = new Thread("mthread 1");
+  t->Fork(MailboxThread1,0);
+  Thread *t1 = new Thread("mthread 2");
+  t1->Fork(MailboxThread2,0);
+}
+
+//diff mailbox: first receive then send
+void MTest4(){
+  DEBUG('t', "Entering MTest4");
+  
+  mailbox1 = new Mailbox("Mailbox1");
+  Thread *t = new Thread("mthread 3");
+  t->Fork(MailboxThread3,0);
+  Thread *t1 = new Thread("mthread 1");
+  t1->Fork(MailboxThread1,0);
+}
+
+//same mailbox: ssrr
+void MTest5(){
+  DEBUG('t', "Entering MTest5");
+  
+  mailbox1 = new Mailbox("Mailbox1");
+  Thread *t = new Thread("mthread 1");
+  t->Fork(MailboxThread1,0);
+  Thread *t1 = new Thread("mthread 1");
+  t1->Fork(MailboxThread1,0);
+  Thread *t2 = new Thread("mthread 2");
+  t2->Fork(MailboxThread2,0);
+  Thread *t3 = new Thread("mthread 2");
+  t3->Fork(MailboxThread2,0);
+}
+
+//diff mailbox: ssrr
+void MTest6(){
+  DEBUG('t', "Entering MTest6");
+  
+  mailbox1 = new Mailbox("Mailbox1");
+  mailbox2 = new Mailbox("Mailbox2");
+
+  Thread *t = new Thread("mthread 1");
+  t->Fork(MailboxThread1,0);
+  Thread *t1 = new Thread("mthread 4");
+  t1->Fork(MailboxThread4,0);
+  Thread *t2 = new Thread("mthread 2");
+  t2->Fork(MailboxThread2,0);
+  Thread *t3 = new Thread("mthread 3");
+  t3->Fork(MailboxThread3,0);
+}
+
+void MTest7(){
+  DEBUG('t', "Entering MTest7");
+  
+  mailbox1 = new Mailbox("Mailbox1");
+  mailbox2 = new Mailbox("Mailbox2");
+
+  Thread *t = new Thread("mthread 1");
+  t->Fork(MailboxThread1,0);
+  Thread *t1 = new Thread("mthread 4");
+  t1->Fork(MailboxThread4,0);
+  Thread *t2 = new Thread("mthread 3");
+  t2->Fork(MailboxThread3,0);
+  Thread *t3 = new Thread("mthread 2");
+  t3->Fork(MailboxThread2,0);
+}
+
+//one send
+void MTest8(){
+  DEBUG('t', "Entering MTest8");
+  
+  mailbox1 = new Mailbox("Mailbox1");
+
+  Thread *t = new Thread("mthread 1");
+  t->Fork(MailboxThread1,0);
+}
+
+//one receive
+void MTest9(){
+  DEBUG('t', "Entering MTest9");
+  
+  mailbox1 = new Mailbox("Mailbox1");
+
+  Thread *t = new Thread("mthread 2");
+  t->Fork(MailboxThread2,0);
 }
 
 
@@ -481,6 +624,34 @@ ThreadTest()
     case 4:
 	    CondTest1();
 	break;
+    case 5:
+	    CondTest2();
+	break;
+    case 6:
+	    CondTest3();
+	break;
+    case 7:
+	    CondTest4();
+	break;
+    case 8:
+	    CondTest5();
+	break;
+    case 9:
+	    CondTest6();
+	break;
+    case 10:
+	    CondTest7();
+	break;
+    case 11:
+	    CondTest8();
+	break;
+    case 12:
+	    CondTest9();
+	break;
+    case 13:
+	    MTest1();
+	break;
+
     default:
         printf("No test specified.\n");
         break;

@@ -18,7 +18,6 @@
 #define SYNCH_H
 
 #include "copyright.h"
-#include "thread.h"
 #include "list.h"
 
 // The following class defines a "semaphore" whose value is a non-negative
@@ -158,10 +157,9 @@ public:
 
 private:
   char* name;
-  List* senderQueue;
-  List* receiverQueue;
-  Lock senderLock;
-  Lock receiverLock;
-  Condition cond;
-}
+  int receiveBuffer;
+  Lock* senderLock;
+  Lock* receiverLock;
+  Condition* cond;
+};
 #endif // SYNCH_H

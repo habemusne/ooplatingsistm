@@ -85,7 +85,8 @@ private:
     Lock* lock;
 
 public:
-    Thread(char* debugName, int join = 0);
+    Thread(char* debugName);
+    Thread(char* debugName, int join );
     ~Thread(); 				// deallocate a Thread
     // NOTE -- thread being deleted
     // must not be running when delete

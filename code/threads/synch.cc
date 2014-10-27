@@ -150,7 +150,7 @@ void Lock::Release() {
 }
 
 Condition::Condition(char* debugName) {
-  this->name = debugname;
+  this->name = debugName;
   this->queue = new List;
 }
 
@@ -164,7 +164,7 @@ Condition::~Condition() {
 void Condition::Wait(Lock* conditionLock) {
   IntStatus oldLevel = interrupt->SetLevel(IntOff);
   conditionLock->Release();
-  this->queue->append((void *) currentThread);
+  this->queue->Append((void *) currentThread);
   currentThread->Sleep();
   conditionLock->Acquire();
   (void) interrupt->SetLevel(oldLevel);
@@ -175,8 +175,8 @@ void Condition::Signal(Lock* conditionLock) {
   IntStatus oldLevel = interrupt->SetLevel(IntOff);
   thread = (Thread *)queue->Remove();
   if (thread != NULL)
-    scheduler->ReadyToRun(thread)
-  else
+    scheduler->ReadyToRun(thread);
+  //else
     
   (void) interrupt->SetLevel(oldLevel);
 }
@@ -195,14 +195,14 @@ void Condition::Broadcast(Lock* conditionLock) {
 Mailbox::Mailbox(char* debugName){
   this->name = debugName;
   this->senderLock = new Lock("SenderLock");
-  this->ReceiverLock = new Lock("ReceiverLock");
+  this->receiverLock = new Lock("ReceiverLock");
   this->cond = new Condition("condition");
 }
 
 Mailbox::~Mailbox(){
   delete this->name;
   delete this->senderLock;
-  delete this->ReceiverLock;
+  delete this->receiverLock;
   delete this->cond;
   this->name = NULL;
   this->senderLock = NULL;
@@ -216,6 +216,7 @@ void Mailbox::Send(int message){
   cond->Wait(senderLock);
   cond->Signal(receiverLock);
   //copy message
+  this->receiveBuffer = message;
   senderLock->Release();
   (void) interrupt->SetLevel(oldLevel);
 }
@@ -226,6 +227,7 @@ void Mailbox::Receive(int * message){
   cond->Signal(senderLock);
   cond->Wait(receiverLock);
   //copy message
+  this->receiveBuffer = *message;
   receiverLock->Release();
   (void) interrupt->SetLevel(oldLevel);
 }
