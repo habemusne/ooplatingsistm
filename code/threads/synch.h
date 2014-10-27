@@ -141,7 +141,27 @@ public:
 private:
     char* name;
     List* queue;
-    bool signaled;
     // plus some other stuff you'll need to define
 };
+
+// part 2 mailbox class
+class Mailbox {
+public:
+  Mailbox(char* debugName);
+  ~Mailbox();
+  char* getName(){
+    return (name);
+  }
+
+  void Send(int message);
+  void Receive(int * message);
+
+private:
+  char* name;
+  List* senderQueue;
+  List* receiverQueue;
+  Lock senderLock;
+  Lock receiverLock;
+  Condition cond;
+}
 #endif // SYNCH_H

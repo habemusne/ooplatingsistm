@@ -152,7 +152,6 @@ void Lock::Release() {
 Condition::Condition(char* debugName) {
   this->name = debugname;
   this->queue = new List;
-  this->signaled = false;
 }
 
 Condition::~Condition() {
@@ -163,29 +162,70 @@ Condition::~Condition() {
 }
 
 void Condition::Wait(Lock* conditionLock) {
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
   conditionLock->Release();
-  while (!this->signaled) {
-    this->queue->append((void *) currentThread);
-    currentThread->Sleep();
-  }
+  this->queue->append((void *) currentThread);
+  currentThread->Sleep();
   conditionLock->Acquire();
+  (void) interrupt->SetLevel(oldLevel);
 }
 
 void Condition::Signal(Lock* conditionLock) {
   Thread *thread;
-  
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
   thread = (Thread *)queue->Remove();
   if (thread != NULL)
-    scheduler->ReadyToRun(thread);
-  this->signaled = true;
+    scheduler->ReadyToRun(thread)
+  else
+    
+  (void) interrupt->SetLevel(oldLevel);
 }
 
 void Condition::Broadcast(Lock* conditionLock) {
   Thread* thread;
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
   while (!queue->isEmpty()) {
     thread = (Thread *) queue->Remove();
     if (thread != NULL)
       scheduler->ReadyToRun(thread);
   }
-  
+  (void) interrupt->SetLevel(oldLevel);
+}
+
+Mailbox::Mailbox(char* debugName){
+  this->name = debugName;
+  this->senderLock = new Lock("SenderLock");
+  this->ReceiverLock = new Lock("ReceiverLock");
+  this->cond = new Condition("condition");
+}
+
+Mailbox::~Mailbox(){
+  delete this->name;
+  delete this->senderLock;
+  delete this->ReceiverLock;
+  delete this->cond;
+  this->name = NULL;
+  this->senderLock = NULL;
+  this->receiverLock = NULL;
+  this->cond = NULL;
+}
+
+void Mailbox::Send(int message){
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
+  senderLock->Acquire();
+  cond->Wait(senderLock);
+  cond->Signal(receiverLock);
+  //copy message
+  senderLock->Release();
+  (void) interrupt->SetLevel(oldLevel);
+}
+
+void Mailbox::Receive(int * message){
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
+  receiverLock->Acquire();
+  cond->Signal(senderLock);
+  cond->Wait(receiverLock);
+  //copy message
+  receiverLock->Release();
+  (void) interrupt->SetLevel(oldLevel);
 }
