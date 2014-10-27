@@ -168,7 +168,7 @@ void Condition::Wait(Lock* conditionLock) {
     this->queue->append((void *) currentThread);
     currentThread->Sleep();
   }
-  this->signaled = false;
+  conditionLock->Acquire();
 }
 
 void Condition::Signal(Lock* conditionLock) {
@@ -178,7 +178,6 @@ void Condition::Signal(Lock* conditionLock) {
   if (thread != NULL)
     scheduler->ReadyToRun(thread);
   this->signaled = true;
-  conditionLock->Acquire();
 }
 
 void Condition::Broadcast(Lock* conditionLock) {
