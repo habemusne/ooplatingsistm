@@ -32,12 +32,14 @@
 //	"threadName" is an arbitrary string, useful for debugging.
 //----------------------------------------------------------------------
 
-Thread::Thread(char* threadName)
+Thread::Thread(char* threadName, int join = 0)
 {
     name = threadName;
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
+    this->join = join;
+
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
@@ -242,6 +244,11 @@ static void InterruptEnable() {
 void ThreadPrint(int arg) {
     Thread *t = (Thread *)arg;
     t->Print();
+}
+
+void Join() {
+    Condition *cond = new condition("cond");
+    
 }
 
 //----------------------------------------------------------------------

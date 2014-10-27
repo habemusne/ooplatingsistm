@@ -79,9 +79,11 @@ private:
     // THEY MUST be in this position for SWITCH to work.
     int* stackTop;			 // the current stack pointer
     int machineState[MachineStateSize];  // all registers except for stackTop
+    int join;
+    Thread* parentThread;
 
 public:
-    Thread(char* debugName);		// initialize a Thread
+    Thread(char* debugName, int join = 0);
     ~Thread(); 				// deallocate a Thread
     // NOTE -- thread being deleted
     // must not be running when delete
@@ -107,6 +109,7 @@ public:
     void Print() {
         printf("%s, ", name);
     }
+    void Join();
 
 private:
     // some of the private data for this class is listed above
