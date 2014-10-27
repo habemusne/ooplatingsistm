@@ -39,6 +39,8 @@ Thread::Thread(char* threadName, int join = 0)
     stack = NULL;
     status = JUST_CREATED;
     this->join = join;
+    this->cond = new Condition("cond");
+    this->lock = new Lock("lock");
 
 #ifdef USER_PROGRAM
     space = NULL;
@@ -247,8 +249,9 @@ void ThreadPrint(int arg) {
 }
 
 void Join() {
-    Condition *cond = new condition("cond");
-    
+    this->lock->Acquire();
+    cond->Wait(this->lock);
+    this->lock->Release();
 }
 
 //----------------------------------------------------------------------

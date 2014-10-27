@@ -39,6 +39,7 @@
 
 #include "copyright.h"
 #include "utility.h"
+#include "synch.h"
 
 #ifdef USER_PROGRAM
 #include "machine.h"
@@ -80,7 +81,8 @@ private:
     int* stackTop;			 // the current stack pointer
     int machineState[MachineStateSize];  // all registers except for stackTop
     int join;
-    Thread* parentThread;
+    Condition *cond;
+    Lock* lock;
 
 public:
     Thread(char* debugName, int join = 0);

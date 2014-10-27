@@ -184,7 +184,7 @@ void Condition::Signal(Lock* conditionLock) {
 void Condition::Broadcast(Lock* conditionLock) {
   Thread* thread;
   IntStatus oldLevel = interrupt->SetLevel(IntOff);
-  while (!queue->isEmpty()) {
+  while (!queue->IsEmpty()) {
     thread = (Thread *) queue->Remove();
     if (thread != NULL)
       scheduler->ReadyToRun(thread);
