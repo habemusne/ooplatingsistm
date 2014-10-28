@@ -75,6 +75,7 @@ LockThread1(int param)
     printf("L1:3\n");
 }
 
+//Aquiring the same Lock twice
 void
 LockThread2(int param)
 {
@@ -82,22 +83,24 @@ LockThread2(int param)
     locktest2->Acquire();
     printf("L2:acquire\n");
     locktest2->Acquire();
-    printf("L2:1\n");
+    printf("L2:1 [UNEXPECTED] \n");
     currentThread->Yield();
     printf("L2:2\n");
     locktest2->Release();
     printf("L2:3\n");
 }
 
+//release a lock that isn't held
 void LockThread3(int param)
 {
     printf("L3:release\n");
     locktest3->Release();
 }
 
+//deleting a Lock that is held
 void LockThread4(int param)
 {
-    printf("L4:acquire");
+    printf("L4:acquire\n");
     locktest4->Acquire();
     printf("L4:delete\n");
     locktest4->~Lock();
@@ -126,7 +129,6 @@ void LockTest2()
     t->Fork(LockThread2, 0);
 }
 
-//test3
 void LockTest3()
 {
     DEBUG('t', "Entering LockTest3");
@@ -135,8 +137,19 @@ void LockTest3()
 
     Thread *t = new Thread("three");
     t->Fork(LockThread3, 0);
-
 }
+
+void LockTest4()
+{
+    DEBUG('t', "Entering LockTest4");
+
+    locktest4 = new Lock("LockTest3");
+
+    Thread *t = new Thread("four");
+    t->Fork(LockThread4, 0);
+}
+
+
 
 
 //-----------------------------------//
@@ -460,7 +473,7 @@ void CondTest9() {
 //-----------------------------------//
 //Mailbox Tests
 //-----------------------------------//
-
+/*
 int m = 1;
 int m1 = 2;
 Mailbox * mailbox1 = NULL;
@@ -598,7 +611,7 @@ void MTest9(){
   Thread *t = new Thread("mthread 2");
   t->Fork(MailboxThread2,0);
 }
-
+*/
 
 //----------------------------------------------------------------------
 // ThreadTest
@@ -622,7 +635,7 @@ ThreadTest()
 	    LockTest3();
 	break;
     case 4:
-	    CondTest1();
+	    LockTest4();
 	break;
     case 5:
 	    CondTest2();
@@ -649,7 +662,7 @@ ThreadTest()
 	    CondTest9();
 	break;
     case 13:
-	    MTest1();
+	    //MTest1();
 	break;
 
     default:
