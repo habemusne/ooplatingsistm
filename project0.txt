@@ -1,0 +1,101 @@
+[nac001@acs-cseb230-02]:threads:20$ gdb ./nachos 
+Python Exception <type 'exceptions.ImportError'> No module named gdb: 
+
+warning: 
+Could not load the Python gdb module from `/usr/local/share/gdb/python'.
+Limited Python support is available from the _gdb module.
+Suggest passing --data-directory=/path/to/gdb/data-directory.
+
+GNU gdb (GDB) 7.6.1
+Copyright (C) 2013 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "i686-pc-linux-gnu".
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>...
+Reading symbols from /home/linux/ieng6/cs120f/nac001/nachos/code/threads/nachos...done.
+(gdb) break SimpleThread(int) 
+Breakpoint 1 at 0x8049fe2: file ../threads/threadtest.cc, line 32.
+(gdb) run
+Starting program: /home/linux/ieng6/cs120f/nac001/nachos/code/threads/./nachos 
+warning: File "/software/common/gcc-4.8.1/lib/libstdc++.so.6.0.18-gdb.py" auto-loading has been declined by your `auto-load safe-path' set to "$debugdir:$datadir/auto-load".
+To enable execution of this file add
+	add-auto-load-safe-path /software/common/gcc-4.8.1/lib/libstdc++.so.6.0.18-gdb.py
+line to your configuration file "/home/linux/ieng6/oce/88/nac001/.gdbinit".
+To completely disable this security protection add
+	set auto-load safe-path /
+line to your configuration file "/home/linux/ieng6/oce/88/nac001/.gdbinit".
+For more information about this security protection see the
+"Auto-loading safe path" section in the GDB manual.  E.g., run from the shell:
+	info "(gdb)Auto-loading safe path"
+
+Breakpoint 1, SimpleThread (which=0) at ../threads/threadtest.cc:32
+32	    for (num = 0; num < 5; num++) {
+(gdb) n
+33	        printf("*** thread %d looped %d times\n", which, num);
+(gdb) 
+*** thread 0 looped 0 times
+34	        currentThread->Yield();
+(gdb) 
+
+Breakpoint 1, SimpleThread (which=1) at ../threads/threadtest.cc:32
+32	    for (num = 0; num < 5; num++) {
+(gdb) 
+33	        printf("*** thread %d looped %d times\n", which, num);
+(gdb) 
+*** thread 1 looped 0 times
+34	        currentThread->Yield();
+(gdb) 
+*** thread 0 looped 1 times
+32	    for (num = 0; num < 5; num++) {
+(gdb) 
+33	        printf("*** thread %d looped %d times\n", which, num);
+(gdb) 
+*** thread 1 looped 1 times
+34	        currentThread->Yield();
+(gdb) 
+*** thread 0 looped 2 times
+32	    for (num = 0; num < 5; num++) {
+(gdb) 
+33	        printf("*** thread %d looped %d times\n", which, num);
+(gdb) 
+*** thread 1 looped 2 times
+34	        currentThread->Yield();
+(gdb) 
+*** thread 0 looped 3 times
+32	    for (num = 0; num < 5; num++) {
+(gdb) 
+33	        printf("*** thread %d looped %d times\n", which, num);
+(gdb) 
+*** thread 1 looped 3 times
+34	        currentThread->Yield();
+(gdb) where
+#0  SimpleThread (which=1) at ../threads/threadtest.cc:34
+#1  0x0804b1c8 in ThreadRoot ()
+#2  0x0804b1c0 in Timer::TimeOfNextInterrupt (this=0x0)
+    at ../machine/timer.cc:88
+#3  0x00000000 in ?? ()
+(gdb) print num
+$1 = 3
+(gdb) print which
+$2 = 1
+(gdb) c
+Continuing.
+*** thread 0 looped 4 times
+*** thread 1 looped 4 times
+No threads ready or runnable, and no pending interrupts.
+Assuming the program completed.
+Machine halting!
+
+Ticks: total 130, idle 0, system 130, user 0
+Disk I/O: reads 0, writes 0
+Console I/O: reads 0, writes 0
+Paging: faults 0
+Network I/O: packets received 0, sent 0
+
+Cleaning up...
+[Inferior 1 (process 15344) exited normally]
+(gdb) q
+
