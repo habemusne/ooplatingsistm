@@ -56,7 +56,8 @@ Thread::Thread(char* debugName, int join = 0)
     this->cond = new Condition("cond");
     this->lock = new Lock("lock");
     this->parentThread = NULL;
-    this->finished = false;
+    this->readyToFinish = false;
+    this->joinIsCalled = false;
 
 #ifdef USER_PROGRAM
     space = NULL;
@@ -168,14 +169,42 @@ Thread::Finish ()
 
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
 
-    threadToBeDestroyed = currentThread;
+    //If this->join == 0, then this thread will not be called Join(). 
+    //So this thread is safe to immediately delete itself
+    if (this->join == 0) {
+      threadToBeDestroyed = currentThread;
+    } 
+    
+    //else, there are more complex cases
+    else {
 
-    this->lock->Acquire();
-    if (parentThread != NULL)
-        parentThread->cond->Signal(this->lock);
-    this->lock->Release();
-    this->finished = true;
+      // if Join() is not yet called on this child thread, then wait for the parent to call this.
+      if (this->joinIsCalled == false) {
+        this->readyToFinish = true;
+        this->lock->Acquire();
 
+        // So if parent calls "join", then the parent should release this child's lock
+        this->cond->Wait(this->lock);
+
+
+        this->lock->Release();
+        threadToBeDestroyed = currentThread;
+      } 
+
+      // else, then this->joinIsCalled == true, which means that the parent has
+      // run Join() already on its child thread, which means that the parent is 
+      // waiting for the child's finish. So, we need to Signal() the parent to
+      // continue. What lock to Signal()? Parent's lock --- look at Join()
+      else {
+        this->parentThread->lock->Acquire();
+        this->parentThread->cond->Signal();
+
+        //PROBLEM: is it possible that the parent's CV has nothing waiting?
+        
+        this->parentThread->lock->Acquire();
+        threadToBeDestroyed = currentThread;
+      }
+    }
     Sleep();					// invokes SWITCH
     // not reached
 }
@@ -272,11 +301,30 @@ void ThreadPrint(int arg) {
 }
 
 void Thread::Join() {
+    this->joinIsCalled = true;
     this->parentThread = currentThread;
-    this->lock->Acquire();
-    if (this->finished == false)
-        this->parentThread->cond->Wait(this->lock);
-    this->lock->Release();
+
+    //Signals the child's lock, so that the child is able to finish()
+    //
+    //if this->readyToFinish == true, then Finish() has already been called on
+    //this child thread ---- but it is waiting for this Join() to be called. 
+    //In other words, this child thread is trying to finish earlier than its
+    //parent. 
+    if (this->readyToFinish == true) {
+      this->lock->Acquire();
+      this->cond->Signal(this->lock);
+      this->lock->Release();
+    }
+
+    //else, then this->readyToFinish == false, which means that the parent 
+    //thread runs child's Join() earler than the this thread finishes. Then,
+    //the parent will wait for the child to call Finish() before continuing
+    else {
+      currentThread->lock->Acquire();
+      currentThread->cond->Wait(currentThread->lock);
+      currentThread->lock->Release();
+    }
+
 }
 
 //----------------------------------------------------------------------

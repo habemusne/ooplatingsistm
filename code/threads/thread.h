@@ -84,7 +84,8 @@ private:
     Condition *cond;
     Lock* lock;
     Thread* parentThread;
-    bool finished;
+    bool readyToFinish;
+    bool joinIsCalled;
 
 public:
     Thread(char* debugName);
