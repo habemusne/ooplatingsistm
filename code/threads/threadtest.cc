@@ -645,6 +645,8 @@ ThreadTest()
     case 4:
       LockTest4();
   break;
+    case 5:
+      CondTest1();
     case 6:
       CondTest2();
   break;
