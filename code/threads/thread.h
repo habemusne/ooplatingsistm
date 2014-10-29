@@ -84,7 +84,7 @@ private:
     Condition *cond;
     Lock* lock;
     Thread* parentThread;
-    bool fininshed;
+    bool finished;
 
 public:
     Thread(char* debugName);
