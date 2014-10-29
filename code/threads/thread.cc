@@ -55,6 +55,8 @@ Thread::Thread(char* debugName, int join = 0)
     this->join = join;
     this->cond = new Condition("cond");
     this->lock = new Lock("lock");
+    this->parentThread = NULL;
+    this->finished = false;
 
 #ifdef USER_PROGRAM
     space = NULL;
@@ -167,6 +169,13 @@ Thread::Finish ()
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
 
     threadToBeDestroyed = currentThread;
+
+    this->lock->Acquire();
+    if (parentThread != NULL)
+        parentThread->cond->Signal(this->lock);
+    this->lock->Release();
+    this->finished = true;
+
     Sleep();					// invokes SWITCH
     // not reached
 }
@@ -263,8 +272,10 @@ void ThreadPrint(int arg) {
 }
 
 void Thread::Join() {
+    this->parentThread = currentThread;
     this->lock->Acquire();
-    cond->Wait(this->lock);
+    if (this->finished == false)
+        this->parentThread->cond->Wait(this->lock);
     this->lock->Release();
 }
 

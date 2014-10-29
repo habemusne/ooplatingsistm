@@ -1,9 +1,9 @@
 // threadtest.cc
-//	Simple test case for the threads assignment.
+//  Simple test case for the threads assignment.
 //
-//	Create two threads, and have them context switch
-//	back and forth between themselves by calling Thread::Yield,
-//	to illustratethe inner workings of the thread system.
+//  Create two threads, and have them context switch
+//  back and forth between themselves by calling Thread::Yield,
+//  to illustratethe inner workings of the thread system.
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
 // All rights reserved.  See copyright.h for copyright notice and limitation
@@ -18,11 +18,11 @@ int testnum = 1;
 
 //----------------------------------------------------------------------
 // SimpleThread
-// 	Loop 5 times, yielding the CPU to another ready thread
-//	each iteration.
+//  Loop 5 times, yielding the CPU to another ready thread
+//  each iteration.
 //
-//	"which" is simply a number identifying the thread, for debugging
-//	purposes.
+//  "which" is simply a number identifying the thread, for debugging
+//  purposes.
 //----------------------------------------------------------------------
 
 void
@@ -38,8 +38,8 @@ SimpleThread(int which)
 
 //----------------------------------------------------------------------
 // ThreadTest1
-// 	Set up a ping-pong between two threads, by forking a thread
-//	to call SimpleThread, and then calling SimpleThread ourselves.
+//  Set up a ping-pong between two threads, by forking a thread
+//  to call SimpleThread, and then calling SimpleThread ourselves.
 //----------------------------------------------------------------------
 
 void
@@ -75,6 +75,7 @@ LockThread1(int param)
     printf("L1:3\n");
 }
 
+//Aquiring the same Lock twice
 void
 LockThread2(int param)
 {
@@ -82,22 +83,24 @@ LockThread2(int param)
     locktest2->Acquire();
     printf("L2:acquire\n");
     locktest2->Acquire();
-    printf("L2:1\n");
+    printf("L2:1 [UNEXPECTED] \n");
     currentThread->Yield();
     printf("L2:2\n");
     locktest2->Release();
     printf("L2:3\n");
 }
 
+//release a lock that isn't held
 void LockThread3(int param)
 {
     printf("L3:release\n");
     locktest3->Release();
 }
 
+//deleting a Lock that is held
 void LockThread4(int param)
 {
-    printf("L4:acquire");
+    printf("L4:acquire\n");
     locktest4->Acquire();
     printf("L4:delete\n");
     locktest4->~Lock();
@@ -126,7 +129,6 @@ void LockTest2()
     t->Fork(LockThread2, 0);
 }
 
-//test3
 void LockTest3()
 {
     DEBUG('t', "Entering LockTest3");
@@ -135,8 +137,19 @@ void LockTest3()
 
     Thread *t = new Thread("three");
     t->Fork(LockThread3, 0);
-
 }
+
+void LockTest4()
+{
+    DEBUG('t', "Entering LockTest4");
+
+    locktest4 = new Lock("LockTest3");
+
+    Thread *t = new Thread("four");
+    t->Fork(LockThread4, 0);
+}
+
+
 
 
 //-----------------------------------//
@@ -460,7 +473,7 @@ void CondTest9() {
 //-----------------------------------//
 //Mailbox Tests
 //-----------------------------------//
-
+/*
 int m = 1;
 int m1 = 2;
 Mailbox * mailbox1 = NULL;
@@ -598,11 +611,11 @@ void MTest9(){
   Thread *t = new Thread("mthread 2");
   t->Fork(MailboxThread2,0);
 }
-
+*/
 
 //----------------------------------------------------------------------
 // ThreadTest
-// 	Invoke a test routine.
+//  Invoke a test routine.
 //----------------------------------------------------------------------
 
 void
@@ -610,51 +623,50 @@ ThreadTest()
 {
     switch (testnum) {
     case 0:
-	   ThreadTest1();
-	break;
+     ThreadTest1();
+  break;
     case 1:
-	    LockTest1();
-	break;
+      LockTest1();
+  break;
     case 2:
-	    LockTest2();
-	break;
+      LockTest2();
+  break;
     case 3:
-	    LockTest3();
-	break;
+      LockTest3();
+  break;
     case 4:
-	    CondTest1();
-	break;
+      LockTest4();
+  break;
     case 5:
-	    CondTest2();
-	break;
+      CondTest2();
+  break;
     case 6:
-	    CondTest3();
-	break;
+      CondTest3();
+  break;
     case 7:
-	    CondTest4();
-	break;
+      CondTest4();
+  break;
     case 8:
-	    CondTest5();
-	break;
+      CondTest5();
+  break;
     case 9:
-	    CondTest6();
-	break;
+      CondTest6();
+  break;
     case 10:
-	    CondTest7();
-	break;
+      CondTest7();
+  break;
     case 11:
-	    CondTest8();
-	break;
+      CondTest8();
+  break;
     case 12:
-	    CondTest9();
-	break;
+      CondTest9();
+  break;
     case 13:
-	    MTest1();
-	break;
+      //MTest1();
+  break;
 
     default:
         printf("No test specified.\n");
         break;
     }
 }
-

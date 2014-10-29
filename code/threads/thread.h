@@ -83,6 +83,8 @@ private:
     int join;
     Condition *cond;
     Lock* lock;
+    Thread* parentThread;
+    bool fininshed;
 
 public:
     Thread(char* debugName);
