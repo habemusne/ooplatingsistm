@@ -197,7 +197,7 @@ Thread::Finish ()
       // continue. What lock to Signal()? Parent's lock --- look at Join()
       else {
         this->parentThread->lock->Acquire();
-        this->parentThread->cond->Signal();
+        this->parentThread->cond->Signal(this->parentThread->lock);
 
         //PROBLEM: is it possible that the parent's CV has nothing waiting?
         
