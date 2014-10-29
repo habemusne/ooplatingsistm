@@ -647,6 +647,7 @@ ThreadTest()
   break;
     case 5:
       CondTest1();
+  break;
     case 6:
       CondTest2();
   break;
