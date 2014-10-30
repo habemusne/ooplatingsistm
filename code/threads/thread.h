@@ -84,8 +84,10 @@ private:
     Condition *cond;
     Lock* lock;
     Thread* parentThread;
+    bool forkIsCalled;
     bool readyToFinish;
     bool joinIsCalled;
+    int priority;
 
 public:
     Thread(char* debugName);
@@ -116,6 +118,8 @@ public:
         printf("%s, ", name);
     }
     void Join();
+    void setPriority(int newPriority);
+    int getPriority();
 
 private:
     // some of the private data for this class is listed above

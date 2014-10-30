@@ -56,8 +56,10 @@ Thread::Thread(char* debugName, int join = 0)
     this->cond = new Condition("cond");
     this->lock = new Lock("lock");
     this->parentThread = NULL;
+    this->forkIsCalled = false;
     this->readyToFinish = false;
     this->joinIsCalled = false;
+    this->priority = 0;
 
 #ifdef USER_PROGRAM
     space = NULL;
@@ -79,6 +81,12 @@ Thread::Thread(char* debugName, int join = 0)
 Thread::~Thread()
 {
     DEBUG('t', "Deleting thread \"%s\"\n", name);
+    delete this->cond;
+    delete this->lock;
+    this->cond = NULL;
+    this->lock = NULL;
+    //PROBLEM: What is meant by "Need to delete sych primitives used by
+    //Join as well?
 
     ASSERT(this != currentThread);
     if (stack != NULL)
@@ -116,6 +124,7 @@ Thread::Fork(VoidFunctionPtr func, int arg)
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
     scheduler->ReadyToRun(this);	// ReadyToRun assumes that interrupts
     // are disabled!
+    this->forkIsCalled = true;
     (void) interrupt->SetLevel(oldLevel);
 }
 
@@ -231,13 +240,16 @@ void
 Thread::Yield ()
 {
     Thread *nextThread;
+    printf("FLAG000\n");
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
-
+    printf("FLAG00\n");
     ASSERT(this == currentThread);
+    printf("FLAG0\n");
 
     DEBUG('t', "Yielding thread \"%s\"\n", getName());
 
     nextThread = scheduler->FindNextToRun();
+    printf("FLAG1\n");
     if (nextThread != NULL) {
         scheduler->ReadyToRun(this);
         scheduler->Run(nextThread);
@@ -301,6 +313,24 @@ void ThreadPrint(int arg) {
 }
 
 void Thread::Join() {
+    //PROBLEM: what if...
+
+    //From project1 slide: A thread can only be joined if specified during
+    //creation
+    ASSERT(this->join != 0);
+
+    //From project1 slide: A thread can only be joined after it has forked
+    ASSERT(this->forkIsCalled == true);
+
+    //From project1 slide: Only ONE THREAD can call Join on another
+    //So, check if parentThread is NULL. If it is, then another thread has
+    //already called Join on this thread, which means that this thread will
+    //have two parents
+    ASSERT(this->parentThread == NULL);
+
+    //From project1 slide: A thread cannot call Join on itself
+    ASSERT(this != currentThread);
+
     this->joinIsCalled = true;
     this->parentThread = currentThread;
 
@@ -325,6 +355,15 @@ void Thread::Join() {
       currentThread->lock->Release();
     }
 
+}
+
+void Thread::setPriority(int newPriority) {
+  //PROBLEM: is this correct?
+  this->priority = -newPriority;
+}
+
+int Thread::getPriority() {
+  return this->priority;
 }
 
 //----------------------------------------------------------------------
