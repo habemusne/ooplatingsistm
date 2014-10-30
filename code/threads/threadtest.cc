@@ -811,10 +811,10 @@ void Part3Thread1(Thread *joinee) {
   currentThread->Yield();
   printf("T1:(6)joining\n");
   if (threadToBeDestroyed == joinee)
-    printf("NO!!! joinee is being deleted before join!!!!\n")
+    printf("NO!!! joinee is being deleted before join!!!!\n");
   joinee->Join();
   if (threadToBeDestroyed == joinee)
-    printf("Great, joinee is being deleted after join\n")
+    printf("Great, joinee is being deleted after join\n");
   printf("T1:(7)joined T2\n");
 }
 
@@ -839,10 +839,10 @@ void Part3Thread3(Thread *joinee) {
   currentThread->Yield();
   printf("T3:(3)joining T4\n");
   if (threadToBeDestroyed == joinee)
-    printf("NO!!! joinee is being deleted before join!!!!\n")
+    printf("NO!!! joinee is being deleted before join!!!!\n");
   joinee->Join();
   if (threadToBeDestroyed == joinee)
-    printf("Great, joinee is being deleted after join\n")
+    printf("Great, joinee is being deleted after join\n");
   printf("T3:(8)joined T4\n");
 }
 
@@ -877,10 +877,10 @@ void Part3Thread5(Thread *joinee) {
   currentThread->Yield();
   printf("T5:(6)joining\n");
   if (threadToBeDestroyed == joinee)
-    printf("NO!!! joinee is being deleted before join!!!!\n")
+    printf("NO!!! joinee is being deleted before join!!!!\n");
   joinee->Join();
   if (threadToBeDestroyed == joinee)
-    printf("Great, joinee is being deleted after join\n")
+    printf("Great, joinee is being deleted after join\n");
   printf("T5:(7)joined T2\n");
   currentThread->Yield();
   printf("T5:(8)yield 5\n");
@@ -921,7 +921,7 @@ void Part3Test5() {
 
 //test6: Join is only invoked on threads created to be joined
 void Part3Thread8(Thread *joinee) {
-  printf("T8:(1)joining T2\n")
+  printf("T8:(1)joining T2\n");
   joinee->Join();
   printf("T8:joined T2 [UNEXPECTED]\n");
 }
@@ -943,12 +943,12 @@ void Part3Test6() {
 
 //test7: Join is only called on a thread that has forked
 void Part3Thread10(Thread *joinee) {
-  printf("T8:(1)joining T2\n")
+  printf("T8:(1)joining T2\n");
   joinee->Join();
   printf("T8:joined T2 [UNEXPECTED]\n");
 }
 
-void Part3Thread10(Thread *joinee) {
+void Part3Thread11(Thread *joinee) {
 
 }
 
@@ -961,8 +961,8 @@ void Part3Test7() {
 }
 
 //test8: Join is not called more than once on a thread
-void Part3Thread11(Thread *joinee) {
-  printf("****NOTE: SEGMENTATION FAULT IS ALLOWED IN THIS CASE****\n")
+void Part3Thread12(Thread *joinee) {
+  printf("****NOTE: SEGMENTATION FAULT IS ALLOWED IN THIS CASE****\n");
   printf("T11: (1)joining T12 \n");
   joinee->Join();
   printf("T11: (5)joined T12. Joining T12 again\n");
@@ -970,7 +970,7 @@ void Part3Thread11(Thread *joinee) {
   printf("T11: joined T12 again [UNEXPECTED]\n");
 }
 
-void Part3Thread12() {
+void Part3Thread13() {
   printf("T12:(2)yield 1\n");
   currentThread->Yield();
   printf("T12:(3)yield2.\n");
@@ -980,10 +980,10 @@ void Part3Thread12() {
 
 void Part3Test8() {
   DEBUG('t', "Entering Part3Test8()");
-  Thread *joiner = new Thread("t11",0);
-  Thread *joinee = new Thread("t12",1);
-  joiner->Fork((VoidFunctionPtr) Part3Thread11, (int) joinee);
-  joinee->Fork((VoidFunctionPtr) Part3Thread12, 0);
+  Thread *joiner = new Thread("t12",0);
+  Thread *joinee = new Thread("t13",1);
+  joiner->Fork((VoidFunctionPtr) Part3Thread12, (int) joinee);
+  joinee->Fork((VoidFunctionPtr) Part3Thread13, 0);
   printf("Forked off the joiner and joiner threads.\n");
 }
 
@@ -997,46 +997,46 @@ ThreadTest()
      ThreadTest1();
   break;
     case 1:
-      LockTest1();
+      LockTest1(); //(1234)
   break;
     case 2:
-      LockTest2();
+      LockTest2(); //(12)
   break;
     case 3:
-      LockTest3();
+      LockTest3(); //(1)
   break;
     case 4:
-      LockTest4();
+      LockTest4(); //(12)
   break;
     case 5:
-      LockTest5();
+      LockTest5(); //(123)
   break;
     case 10:
-      CondTest1();
+      CondTest1(); //(12345678)
   break;
     case 11:
-      CondTest2();
+      CondTest2(); //(123456789 10)
   break;
     case 12:
-      CondTest3();
+      CondTest3(); //(1)
   break;
     case 13:
-      CondTest4();
+      CondTest4(); //(123456789 10 11 12)
   break;
     case 14:
-      CondTest5();
+      CondTest5(); //(123456789 10 11 12 13 14)
   break;
     case 15:
-      CondTest6();
+      CondTest6(); //(12345678)
   break;
     case 16:
-      CondTest7();
+      CondTest7(); //(1234)
   break;
     case 17:
-      CondTest8();
+      CondTest8(); //(123)
   break;
     case 18:
-      CondTest9();
+      CondTest9(); //(123)
   break;
     case 20:
       MTest1();
@@ -1064,6 +1064,27 @@ ThreadTest()
   break;
     case 30:
       Part3Test1();
+  break;
+    case 31:
+      Part3Test2();
+  break;
+    case 32:
+      Part3Test3();
+  break;
+    case 33:
+      Part3Test4();
+  break;
+    case 34:
+      Part3Test5();
+  break;
+    case 35:
+      Part3Test6();
+  break;
+    case 36:
+      Part3Test7();
+  break;
+    case 37:
+      Part3Test8();
   break;
     default:
         printf("No test specified.\n");
