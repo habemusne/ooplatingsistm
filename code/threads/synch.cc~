@@ -104,30 +104,28 @@ Lock::Lock(char* debugName) {
     this->held = 0;
     this->queue = new List;
     this->name = debugName;
-    this->lockHold = NULL;
+    this->previous_thread = NULL;
 }
 Lock::~Lock() {
 
-    //a lock should not be deleted if a thread is holding it
-    printf("synch.cc:Entering ~Lock()\n");
+    //Check if case (3) satisfies
     ASSERT(this->held == 0);
-    printf("synch.cc: deleting name in Lock\n");
-    //delete this->name;
-    printf("synch.cc: deleting queue in Lock\n");
+
+    delete this->name;
     delete this->queue;
     this->name = NULL;
     this->queue = NULL;
-    this->lockHold = NULL;
+    this->previous_thread = NULL;
 }
 void Lock::Acquire() {
     IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
 
-    //a thread cannot acquire a lock that it already has
-    ASSERT(held == 0);
+    //Check if case (1) satisfies
+    ASSERT(this->previous_thread != (void *) currentThread);
 
-    this->lockHold = currentThread;
-    while (held) { 			// lock not available
-        queue->Append(currentThread);	// so go to sleep
+    this->previous_thread = (void *)currentThread;
+    while (held) { 			// semaphore not available
+        queue->Append((void *)currentThread);	// so go to sleep
         currentThread->Sleep();
     }
     // consume its value
@@ -140,20 +138,15 @@ void Lock::Release() {
     Thread *thread;
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
-    //a thread cannot release a lock that is does not hold
-    ASSERT(this->isHeldByCurrentThread() && held == 1);
+    ASSERT(this->held == 1); //Check if case (2) satisfies
 
     thread = (Thread *)queue->Remove();
-    if (thread != NULL)	   // make thread ready, consuming immediately
+    if (thread != NULL)	   // make thread ready, consuming the V immediately
         scheduler->ReadyToRun(thread);
     held = 0;
-    this->lockHold = NULL;
     (void) interrupt->SetLevel(oldLevel);
-}
 
-bool Lock::isHeldByCurrentThread()
-{
-    return lockHold == currentThread;
+
 }
 
 Condition::Condition(char* debugName) {
@@ -162,23 +155,13 @@ Condition::Condition(char* debugName) {
 }
 
 Condition::~Condition() {
-  //should not have threads waiting on queue.
-  printf("synch.cc:entering Condition::~Condition()\n");
-  ASSERT(queue->IsEmpty());
-  printf("synch.cc:deleting the name in cond\n");
-  printf(this->name);
-  printf("\n");
-  //delete this->name;
-  printf("synch.cc:deleting the queue in cond\n");
+  delete this->name;
   delete this->queue;
   this->name = NULL;
   this->queue = NULL;
 }
 
 void Condition::Wait(Lock* conditionLock) {
-  //must be made while the current thread has acquired a lock. 
-  ASSERT(conditionLock->isHeldByCurrentThread());
-
   IntStatus oldLevel = interrupt->SetLevel(IntOff);
   conditionLock->Release();
   this->queue->Append((void *) currentThread);
@@ -188,24 +171,17 @@ void Condition::Wait(Lock* conditionLock) {
 }
 
 void Condition::Signal(Lock* conditionLock) {
-  //must be made while the current thread has acquired a lock. 
-  ASSERT(conditionLock->isHeldByCurrentThread());
-
   Thread *thread;
   IntStatus oldLevel = interrupt->SetLevel(IntOff);
   thread = (Thread *)queue->Remove();
   if (thread != NULL)
     scheduler->ReadyToRun(thread);
-  
-  delete thread;
-
+  //else
+    
   (void) interrupt->SetLevel(oldLevel);
 }
 
 void Condition::Broadcast(Lock* conditionLock) {
-  //must be made while the current thread has acquired a lock. 
-  ASSERT(conditionLock->isHeldByCurrentThread());
-
   Thread* thread;
   IntStatus oldLevel = interrupt->SetLevel(IntOff);
   while (!queue->IsEmpty()) {
@@ -213,45 +189,45 @@ void Condition::Broadcast(Lock* conditionLock) {
     if (thread != NULL)
       scheduler->ReadyToRun(thread);
   }
-  
-  delete thread;
   (void) interrupt->SetLevel(oldLevel);
 }
 
 Mailbox::Mailbox(char* debugName){
   this->name = debugName;
-  this->data = new List();
-  this->locker = new Lock("lock");
-  this->send = new Condition("sendCond");
-  this->receive = new Condition("receiveCond");
+  this->senderLock = new Lock("SenderLock");
+  this->receiverLock = new Lock("ReceiverLock");
+  this->cond = new Condition("condition");
 }
 
 Mailbox::~Mailbox(){
   delete this->name;
-  delete this->data;
-  delete this->locker;
-  delete this->send;
-  delete this->receive;
+  delete this->senderLock;
+  delete this->receiverLock;
+  delete this->cond;
+  this->name = NULL;
+  this->senderLock = NULL;
+  this->receiverLock = NULL;
+  this->cond = NULL;
 }
 
 void Mailbox::Send(int message){
-  locker->Acquire();
-
-  if(data->IsEmpty() == false)
-    receive->Wait(locker);
-  
-  data->Append((void *)data);
-  send->Signal(locker);
-  locker->Release();
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
+  senderLock->Acquire();
+  cond->Wait(senderLock);
+  cond->Signal(receiverLock);
+  //copy message
+  this->receiveBuffer = message;
+  senderLock->Release();
+  (void) interrupt->SetLevel(oldLevel);
 }
 
 void Mailbox::Receive(int * message){
-  locker->Acquire();
-  
-  if(data->IsEmpty())
-    send->Wait(locker);
-
-  data->Remove();
-  receive->Signal(locker);
-  locker->Release();
+  IntStatus oldLevel = interrupt->SetLevel(IntOff);
+  receiverLock->Acquire();
+  cond->Signal(senderLock);
+  cond->Wait(receiverLock);
+  //copy message
+  this->receiveBuffer = *message;
+  receiverLock->Release();
+  (void) interrupt->SetLevel(oldLevel);
 }

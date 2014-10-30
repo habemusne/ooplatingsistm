@@ -111,7 +111,7 @@ void LockThread4(int param)
 void LockThread5(int param) {
   printf("L5:acquire\n");
   locktest4->Acquire();
-  printf("L5:acquired [UNEXPECTED]\n");
+  printf("L5:acquired\n");
 }
 
 void LockThread6(int param) {
@@ -186,23 +186,23 @@ Condition *Cond1 = NULL;
 Lock *lockTest5 = NULL;
 
 void CondThread1(int param) {
-  printf("CT1: acquiring");
+  printf("CT1: acquiring\n");
   lockTest5->Acquire();
-  printf("CT1: acquired. before wait");
+  printf("CT1: acquired. before wait\n");
   Cond1->Wait(lockTest5);
-  printf("CT1: after wait");
+  printf("CT1: after wait\n");
   lockTest5->Release();
-  printf("CT1: released");
+  printf("CT1: released\n");
 }
 
 void CondThread2(int param) {
-  printf("CT1: acquiring");
+  printf("CT2: acquiring\n");
   lockTest5->Acquire();
-  printf("CT2: acquired. before signal");
+  printf("CT2: acquired. before signal\n");
   Cond1->Signal(lockTest5);
-  printf("CT2: after signal");
+  printf("CT2: after signal\n");
   lockTest5->Release();
-  printf("CT2: released");
+  printf("CT2: released\n");
 }
 
 void CondTest1()
@@ -288,8 +288,7 @@ void CondTest3() {
 
 }
 
-//signaling a condition variable wakes only one thread and broadcasting wakes
-//up all threads,
+//broadcasting wakes up all threads,
 void CondThread7(int param) {
   printf("CT7: acquiring\n");
   lockTest5->Acquire();
@@ -650,6 +649,8 @@ void MTest9(){
 // Part3Test
 //  Invoke a test routine.
 //----------------------------------------------------------------------
+
+//test1: the Joiner-Joinee example tester given on write-up
 void
 Joiner(Thread *joinee)
 {
@@ -708,6 +709,24 @@ Part3Test1()
   printf("Forked off the joiner and joiner threads.\n");
 }
 
+
+//test2: a thread that will be joined only is destoryed once join has been called on it
+void Part3Thread1(Thread *joinee) {
+  joinee->Join();
+}
+
+void Part3Thread2() {
+
+}
+
+void Part3Test2() {
+  DEBUG('t', "Entering Part3Test2*()");
+  Thread *joiner = new Thread("t1",0);
+  Thread *joinee = new Thread("t2",1);
+  joiner->Fork((VoidFunctionPtr) Part3Thread1, (int) joinee);
+  joinee->Fork((VoidFunctionPtr) Part3Thread2, 0);
+  printf("Forked off the joiner and joiner threads.\n");
+}
 
 
 void

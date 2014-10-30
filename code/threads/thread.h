@@ -91,7 +91,7 @@ private:
 
 public:
     Thread(char* debugName);
-    Thread(char* debugName, int join );
+    Thread(char* debugName, int isToBeJoinied );
     ~Thread(); 				// deallocate a Thread
     // NOTE -- thread being deleted
     // must not be running when delete

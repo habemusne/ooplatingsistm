@@ -38,21 +38,27 @@ Thread::Thread(char* debugName)
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
+    this->join = 0;
     this->cond = new Condition("cond");
     this->lock = new Lock("lock");
+    this->parentThread = NULL;
+    this->forkIsCalled = false;
+    this->readyToFinish = false;
+    this->joinIsCalled = false;
+    this->priority = 0;
 
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
 }
 
-Thread::Thread(char* debugName, int join = 0)
+Thread::Thread(char* threadName, int isToBeJoined = 0)
 {
-    name = debugName;
+    name = threadName;
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
-    this->join = join;
+    this->join = isToBeJoined;
     this->cond = new Condition("cond");
     this->lock = new Lock("lock");
     this->parentThread = NULL;
@@ -81,14 +87,19 @@ Thread::Thread(char* debugName, int join = 0)
 Thread::~Thread()
 {
     DEBUG('t', "Deleting thread \"%s\"\n", name);
+
+    DEBUG('t', "FLAG0\n");
     delete this->cond;
+    DEBUG('t', "FLAG0.5\n");
     delete this->lock;
     this->cond = NULL;
     this->lock = NULL;
     //PROBLEM: What is meant by "Need to delete sych primitives used by
     //Join as well?
 
+    DEBUG('t', "FLAG1\n");
     ASSERT(this != currentThread);
+    DEBUG('t', "FLAG2\n");
     if (stack != NULL)
         DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
 }
@@ -193,7 +204,8 @@ Thread::Finish ()
       if (this->joinIsCalled == false) {
         this->readyToFinish = true;
 
-        // So if parent calls "join", then the parent should release this child's lock
+        // So if parent calls "join", then the parent should signal this 
+        // child's CV
         this->cond->Wait(this->lock);
         threadToBeDestroyed = currentThread;
       } 
@@ -201,7 +213,7 @@ Thread::Finish ()
       // else, then this->joinIsCalled == true, which means that the parent has
       // run Join() already on its child thread, which means that the parent is 
       // waiting for the child's finish. So, we need to Signal() the parent to
-      // continue. What lock to Signal()? Parent's lock --- look at Join()
+      // continue.
       else {
         this->cond->Signal(this->lock);
         threadToBeDestroyed = currentThread;
@@ -341,7 +353,9 @@ void Thread::Join() {
 
     //else, then this->readyToFinish == false, which means that the parent 
     //thread runs child's Join() earler than the this thread finishes. Then,
-    //the parent will wait for the child to call Finish() before continuing
+    //the parent will wait for the child to call Finish() before continuing.
+    //This means that the child's Finish() should Signal() it lock if meeting
+    //this case.
     else {
       this->cond->Wait(this->lock);
     }

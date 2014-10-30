@@ -85,7 +85,7 @@ private:
     // plus some other stuff you'll need to define
     int held;
     List *queue;
-    void *lockHold;  //the thread currently holding lock
+    void* previous_thread;
 };
 
 // The following class defines a "condition variable".  A condition
@@ -156,10 +156,10 @@ public:
   void Receive(int * message);
 
 private:
-  char *name;
-  List *data;
-  Lock *locker;
-  Condition *send;
-  Condition *receive;
+  char* name;
+  int receiveBuffer;
+  Lock* senderLock;
+  Lock* receiverLock;
+  Condition* cond;
 };
 #endif // SYNCH_H
