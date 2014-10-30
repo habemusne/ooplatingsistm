@@ -174,6 +174,8 @@ void
 Thread::Finish ()
 {
     (void) interrupt->SetLevel(IntOff);
+    this->lock->Acquire();
+
     ASSERT(this == currentThread);
 
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
@@ -190,13 +192,9 @@ Thread::Finish ()
       // if Join() is not yet called on this child thread, then wait for the parent to call this.
       if (this->joinIsCalled == false) {
         this->readyToFinish = true;
-        this->lock->Acquire();
 
         // So if parent calls "join", then the parent should release this child's lock
         this->cond->Wait(this->lock);
-
-
-        this->lock->Release();
         threadToBeDestroyed = currentThread;
       } 
 
@@ -205,15 +203,11 @@ Thread::Finish ()
       // waiting for the child's finish. So, we need to Signal() the parent to
       // continue. What lock to Signal()? Parent's lock --- look at Join()
       else {
-        this->parentThread->lock->Acquire();
-        this->parentThread->cond->Signal(this->parentThread->lock);
-
-        //PROBLEM: is it possible that the parent's CV has nothing waiting?
-        
-        this->parentThread->lock->Acquire();
+        this->cond->Signal(this->lock);
         threadToBeDestroyed = currentThread;
       }
     }
+    this->lock->Release();
     Sleep();					// invokes SWITCH
     // not reached
 }
@@ -314,6 +308,7 @@ void ThreadPrint(int arg) {
 
 void Thread::Join() {
     //PROBLEM: what if...
+    this->lock->Acquire();
 
     //From project1 slide: A thread can only be joined if specified during
     //creation
@@ -341,20 +336,17 @@ void Thread::Join() {
     //In other words, this child thread is trying to finish earlier than its
     //parent. 
     if (this->readyToFinish == true) {
-      this->lock->Acquire();
       this->cond->Signal(this->lock);
-      this->lock->Release();
     }
 
     //else, then this->readyToFinish == false, which means that the parent 
     //thread runs child's Join() earler than the this thread finishes. Then,
     //the parent will wait for the child to call Finish() before continuing
     else {
-      currentThread->lock->Acquire();
-      currentThread->cond->Wait(currentThread->lock);
-      currentThread->lock->Release();
+      this->cond->Wait(this->lock);
     }
 
+    this->lock->Release();
 }
 
 void Thread::setPriority(int newPriority) {
@@ -363,7 +355,7 @@ void Thread::setPriority(int newPriority) {
 }
 
 int Thread::getPriority() {
-  return this->priority;
+  return -(this->priority);
 }
 
 //----------------------------------------------------------------------

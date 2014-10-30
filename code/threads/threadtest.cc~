@@ -108,7 +108,19 @@ void LockThread4(int param)
     printf("L4:deleted [UNEXPECTED]");
 }
 
+void LockThread5(int param) {
+  printf("L5:acquire\n");
+  locktest4->Acquire();
+  printf("L5:acquired [UNEXPECTED]\n");
+}
 
+void LockThread6(int param) {
+  printf("L6:release\n");
+  locktest4->Release();
+  printf("L6:released [UNEXPECTED]\n");
+}
+
+//test1: a thread acquires a lock, yields itself, then releases
 void
 LockTest1()
 {
@@ -120,7 +132,7 @@ LockTest1()
     t->Fork(LockThread1, 0);
 }
 
-//test2:acquiring the same lock twice
+//test2: acquiring the same lock twice
 void LockTest2()
 {
     DEBUG('t', "Entering LockTest2");
@@ -131,6 +143,7 @@ void LockTest2()
     t->Fork(LockThread2, 0);
 }
 
+//test3: release a lock that is not held
 void LockTest3()
 {
     DEBUG('t', "Entering LockTest3");
@@ -141,17 +154,26 @@ void LockTest3()
     t->Fork(LockThread3, 0);
 }
 
+//test4: deleting a lock that is held
 void LockTest4()
 {
     DEBUG('t', "Entering LockTest4");
 
-    locktest4 = new Lock("LockTest3");
+    locktest4 = new Lock("LockTest4");
 
     Thread *t = new Thread("four");
     t->Fork(LockThread4, 0);
 }
 
-
+//test5: a thread releases the lock acquired by another thread
+void LockTest5() {
+  DEBUG('t', "Entering LockTest5");
+  locktest4 = new Lock("LockTest5");
+  Thread *t = new Thread("five");
+  t->Fork(LockThread5, 0);
+  t = new Thread("six");
+  t->Fork(LockThread6, 0);
+}
 
 
 //-----------------------------------//
@@ -708,34 +730,37 @@ ThreadTest()
       LockTest4();
   break;
     case 5:
-      CondTest1();
-  break;
-    case 6:
-      CondTest2();
-  break;
-    case 7:
-      CondTest3();
-  break;
-    case 8:
-      CondTest4();
-  break;
-    case 9:
-      CondTest5();
+      LockTest5();
   break;
     case 10:
-      CondTest6();
+      CondTest1();
   break;
     case 11:
-      CondTest7();
+      CondTest2();
   break;
     case 12:
-      CondTest8();
+      CondTest3();
   break;
     case 13:
-      CondTest9();
+      CondTest4();
   break;
     case 14:
-      //MTest1();
+      CondTest5();
+  break;
+    case 15:
+      CondTest6();
+  break;
+    case 16:
+      CondTest7();
+  break;
+    case 17:
+      CondTest8();
+  break;
+    case 18:
+      CondTest9();
+  break;
+    case 20:
+     //MTest1();
   break;
     case 30:
       Part3Test1();

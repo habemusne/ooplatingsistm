@@ -108,7 +108,19 @@ void LockThread4(int param)
     printf("L4:deleted [UNEXPECTED]");
 }
 
+void LockThread5(int param) {
+  printf("L5:acquire\n");
+  locktest4->Acquire();
+  printf("L5:acquired [UNEXPECTED]\n");
+}
 
+void LockThread6(int param) {
+  printf("L6:release\n");
+  locktest4->Release();
+  printf("L6:released [UNEXPECTED]\n");
+}
+
+//test1: a thread acquires a lock, yields itself, then releases
 void
 LockTest1()
 {
@@ -120,7 +132,7 @@ LockTest1()
     t->Fork(LockThread1, 0);
 }
 
-//test2:acquiring the same lock twice
+//test2: acquiring the same lock twice
 void LockTest2()
 {
     DEBUG('t', "Entering LockTest2");
@@ -131,6 +143,7 @@ void LockTest2()
     t->Fork(LockThread2, 0);
 }
 
+//test3: release a lock that is not held
 void LockTest3()
 {
     DEBUG('t', "Entering LockTest3");
@@ -141,17 +154,26 @@ void LockTest3()
     t->Fork(LockThread3, 0);
 }
 
+//test4: deleting a lock that is held
 void LockTest4()
 {
     DEBUG('t', "Entering LockTest4");
 
-    locktest4 = new Lock("LockTest3");
+    locktest4 = new Lock("LockTest4");
 
     Thread *t = new Thread("four");
     t->Fork(LockThread4, 0);
 }
 
-
+//test5: a thread releases the lock acquired by another thread
+void LockTest5() {
+  DEBUG('t', "Entering LockTest5");
+  locktest4 = new Lock("LockTest5");
+  Thread *t = new Thread("five");
+  t->Fork(LockThread5, 0);
+  t = new Thread("six");
+  t->Fork(LockThread6, 0);
+}
 
 
 //-----------------------------------//
@@ -161,25 +183,25 @@ void LockTest4()
 
 //CondTest1: a thread waits the cond, another signals
 Condition *Cond1 = NULL;
-Lock *LockTest5 = NULL;
+Lock *lockTest5 = NULL;
 
 void CondThread1(int param) {
   printf("CT1: acquiring");
-  LockTest5->Acquire();
+  lockTest5->Acquire();
   printf("CT1: acquired. before wait");
-  Cond1->Wait(LockTest5);
+  Cond1->Wait(lockTest5);
   printf("CT1: after wait");
-  LockTest5->Release();
+  lockTest5->Release();
   printf("CT1: released");
 }
 
 void CondThread2(int param) {
   printf("CT1: acquiring");
-  LockTest5->Acquire();
+  lockTest5->Acquire();
   printf("CT2: acquired. before signal");
-  Cond1->Signal(LockTest5);
+  Cond1->Signal(lockTest5);
   printf("CT2: after signal");
-  LockTest5->Release();
+  lockTest5->Release();
   printf("CT2: released");
 }
 
@@ -187,7 +209,7 @@ void CondTest1()
 {
     DEBUG('t', "Entering CondTest1");
 
-    LockTest5 = new Lock("CondTest1_lock");
+    lockTest5 = new Lock("CondTest1_lock");
     Cond1 = new Condition("Cond1");
 
 
@@ -202,31 +224,31 @@ void CondTest1()
 //CondTest2: two threads wait, one signal
 void CondThread3(int param) {
   printf("CT3: acquiring");
-  LockTest5->Acquire();
+  lockTest5->Acquire();
   printf("CT3: acquired. before wait");
-  Cond1->Wait(LockTest5);
+  Cond1->Wait(lockTest5);
   printf("CT3: after wait");
-  LockTest5->Release();
+  lockTest5->Release();
   printf("CT3: released");
 }
 
 void CondThread4(int param) {
   printf("CT4: acquiring");
-  LockTest5->Acquire();
+  lockTest5->Acquire();
   printf("CT4: acquired. before wait");
-  Cond1->Wait(LockTest5);
+  Cond1->Wait(lockTest5);
   printf("CT4: after wait [UNEXPECTED]");
-  LockTest5->Release();
+  lockTest5->Release();
   printf("CT4: released [UNEXPECTED]");
 }
 
 void CondThread5(int param) {
   printf("CT5: acquiring");
-  LockTest5->Acquire();
+  lockTest5->Acquire();
   printf("CT5: acquired. before signal");
-  Cond1->Signal(LockTest5);
+  Cond1->Signal(lockTest5);
   printf("CT5: after signal");
-  LockTest5->Release();
+  lockTest5->Release();
   printf("CT5: released");
 }
 
@@ -234,7 +256,7 @@ void CondTest2()
 {
     DEBUG('t', "Entering CondTest2");
 printf("haha");
-    LockTest5 = new Lock("CondTest2_lock");
+    lockTest5 = new Lock("CondTest2_lock");
     Cond1 = new Condition("Cond1");
 
     Thread *t = new Thread("three");
@@ -251,15 +273,15 @@ printf("haha");
 //ConTest3: waiting on a condition variable without holding lock
 void CondThread6(int param) {
     printf("CT6:before wait");
-    Cond1->Wait(LockTest5);
+    Cond1->Wait(lockTest5);
     printf("CT6':waited [UNEXPECTED]");
-    LockTest5->Release();
+    lockTest5->Release();
     printf("CT6: released [UNEXPECTED]");
 }
 
 void CondTest3() {
     DEBUG('t', "Entering CondTest3");
-    LockTest5 = new Lock("CondTest3_lock");
+    lockTest5 = new Lock("CondTest3_lock");
     Cond1 = new Condition("Cond1");
     Thread *t = new Thread("six");
     t->Fork(CondThread6, 0);
@@ -270,38 +292,38 @@ void CondTest3() {
 //up all threads,
 void CondThread7(int param) {
   printf("CT7: acquiring\n");
-  LockTest5->Acquire();
+  lockTest5->Acquire();
   printf("CT7: acquired. before signal\n");
-  Cond1->Wait(LockTest5);
+  Cond1->Wait(lockTest5);
   printf("CT7: after broadcasting\n");
-  LockTest5->Release();
+  lockTest5->Release();
   printf("CT7: after releasing\n");
 }
 
 void CondThread8(int param) {
   printf("CT8: acquiring\n");
-  LockTest5->Acquire();
+  lockTest5->Acquire();
   printf("CT8: acquired. before signal\n");
-  Cond1->Wait(LockTest5);
+  Cond1->Wait(lockTest5);
   printf("CT8: after broadcasting\n");
-  LockTest5->Release();
+  lockTest5->Release();
   printf("CT8: after releasing\n");
 }
 
 void CondThread9(int param) {
   printf("CT9: acquiring\n");
-  LockTest5->Acquire();
+  lockTest5->Acquire();
   printf("CT9: signaling\n");
-  Cond1->Broadcast(LockTest5);
+  Cond1->Broadcast(lockTest5);
   printf("CT9: signaled\n");
   printf("CT9: after broadcasting\n");
-  LockTest5->Release();
+  lockTest5->Release();
   printf("CT9: after releasing\n");
 }
 
 void CondTest4() {
     DEBUG('t', "Entering CondTest4");
-    LockTest5 = new Lock("CondTest4_lock");
+    lockTest5 = new Lock("CondTest4_lock");
     Cond1 = new Condition("Cond1");
     Thread *t = new Thread("seven");
     t->Fork(CondThread7, 0);
@@ -315,39 +337,39 @@ void CondTest4() {
 // and future threads that wait will block
 void CondThread10(int param) {
     printf("CT10: acquiring\n");
-    LockTest5->Acquire();
+    lockTest5->Acquire();
     printf("CT10: signaling\n");
-    Cond1->Signal(LockTest5);
+    Cond1->Signal(lockTest5);
     printf("CT10: signaled\n");
     printf("CT10: releasing\n");
-    LockTest5->Release();
+    lockTest5->Release();
     printf("CT10: released\n");
 }
 
 void CondThread11(int param) {
     printf("CT11: acquiring\n");
-    LockTest5->Acquire();
+    lockTest5->Acquire();
     printf("CT11: waiting\n");
-    Cond1->Wait(LockTest5);
+    Cond1->Wait(lockTest5);
     printf("CT11: releasing [UNEXPECTED]\n");
-    LockTest5->Release();
+    lockTest5->Release();
     printf("CT11: released [UNEXPECTED]\n");
 }
 
 void CondThread12(int param) {
     printf("CT12: acquiring\n");
-    LockTest5->Acquire();
+    lockTest5->Acquire();
     printf("CT12: waiting\n");
-    Cond1->Wait(LockTest5);
+    Cond1->Wait(lockTest5);
     printf("CT12: releasing [UNEXPECTED]\n");
-    LockTest5->Release();
+    lockTest5->Release();
     printf("CT12: released [UNEXPECTED]\n");
 }
 
 void CondTest5() {
     DEBUG('t', "Entering CondTest5");
     printf("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHH ASK THE TEACHER ABOUT THIS CASE HHHHHHHHHHHHHHHHHHH\n");
-    LockTest5 = new Lock("CondTest5_lock");
+    lockTest5 = new Lock("CondTest5_lock");
     Cond1 = new Condition("Cond1");
     Thread *t = new Thread("ten");
     t->Fork(CondThread10, 0);
@@ -361,39 +383,39 @@ void CondTest5() {
 //and future threads that wait will block
 void CondThread13(int param) {
     printf("CT13: acquiring\n");
-    LockTest5->Acquire();
+    lockTest5->Acquire();
     printf("CT13: broadcasting\n");
-    Cond1->Broadcast(LockTest5);
+    Cond1->Broadcast(lockTest5);
     printf("CT13: broadcasted\n");
     printf("CT13: releasing\n");
-    LockTest5->Release();
+    lockTest5->Release();
     printf("CT13: released\n");
 }
 
 void CondThread14(int param) {
     printf("CT14: acquiring\n");
-    LockTest5->Acquire();
+    lockTest5->Acquire();
     printf("CT14: waiting\n");
-    Cond1->Wait(LockTest5);
+    Cond1->Wait(lockTest5);
     printf("CT14: releasing [UNEXPECTED] \n");
-    LockTest5->Release();
+    lockTest5->Release();
     printf("CT14: released [UNEXPECTED] \n");
 }
 
 void CondThread15(int param) {
     printf("CT15: acquiring\n");
-    LockTest5->Acquire();
+    lockTest5->Acquire();
     printf("CT15: waiting\n");
-    Cond1->Wait(LockTest5);
+    Cond1->Wait(lockTest5);
     printf("CT15: releasing [UNEXPECTED] \n");
-    LockTest5->Release();
+    lockTest5->Release();
     printf("CT15: released [UNEXPECTED] \n");
 }
 
 void CondTest6() {
     printf("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHH ASK THE TEACHER ABOUT THIS CASE HHHHHHHHHHHHHHHHHHH");
     DEBUG('t', "Entering CondTest6");
-    LockTest5 = new Lock("CondTest6_lock");
+    lockTest5 = new Lock("CondTest6_lock");
     Cond1 = new Condition("Cond1");
     Thread *t = new Thread("thirteen");
     t->Fork(CondThread13, 0);
@@ -407,18 +429,18 @@ void CondTest6() {
 //CondTest7: a thread calling Signal holds the Lock passed in to Signal
 void CondThread16(int param) {
     printf("CT16: acquiring");
-    LockTest5->Acquire();
+    lockTest5->Acquire();
     printf("CT16: waiting");
-    Cond1->Signal(LockTest5);
+    Cond1->Signal(lockTest5);
     printf("CT16: releasing");
-    LockTest5->Release();
+    lockTest5->Release();
     printf("CT16: released");
 }
 
 void CondTest7() {
     DEBUG('t', "Entering CondTest7");
     printf("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHH ASK THE TEACHER ABOUT THIS CASE HHHHHHHHHHHHHHHHHHH");
-    LockTest5 = new Lock("CondTest7_lock");
+    lockTest5 = new Lock("CondTest7_lock");
     Cond1 = new Condition("Cond1");
     Thread *t = new Thread("sixteen");
     t->Fork(CondThread16, 0);
@@ -427,23 +449,23 @@ void CondTest7() {
 //CondTest8: deleting a lock should have no threads on the wait queue
 void CondThread17(int param) {
     printf("CT17: acquiring");
-    LockTest5->Acquire();
+    lockTest5->Acquire();
     printf("CT17: waiting");
-    Cond1->Wait(LockTest5);
+    Cond1->Wait(lockTest5);
     printf("CT17: releasing");
-    LockTest5->Release();
+    lockTest5->Release();
     printf("CT17: released");
 }
 
 void CondThread18(int param) {
     printf("CT18: deleting lock");
-    LockTest5->~Lock();
+    lockTest5->~Lock();
     printf("CT18: lock deleted [UNEXPECTED]");
 }
 
 void CondTest8() {
     DEBUG('t', "Entering CondTest8");
-    LockTest5 = new Lock("CondTest8_lock");
+    lockTest5 = new Lock("CondTest8_lock");
     Cond1 = new Condition("Cond1");
     Thread *t = new Thread("seventeen");
     t->Fork(CondThread17, 0);
@@ -455,11 +477,11 @@ void CondTest8() {
 //CondTest9: deleting a condition variable should have no threads on the wait queue
 void CondThread19(int param) {
     printf("CT19: acquiring");
-    LockTest5->Acquire();
+    lockTest5->Acquire();
     printf("CT19: waiting");
-    Cond1->Wait(LockTest5);
+    Cond1->Wait(lockTest5);
     printf("CT19: releasing");
-    LockTest5->Release();
+    lockTest5->Release();
     printf("CT19: released");
 }
 
@@ -471,7 +493,7 @@ void CondThread20(int param) {
 
 void CondTest9() {
     DEBUG('t', "Entering CondTest9");
-    LockTest5 = new Lock("CondTest9_lock");
+    lockTest5 = new Lock("CondTest9_lock");
     Cond1 = new Condition("Cond1");
     Thread *t = new Thread("ninteen");
     t->Fork(CondThread19, 0);
@@ -708,34 +730,37 @@ ThreadTest()
       LockTest4();
   break;
     case 5:
-      CondTest1();
-  break;
-    case 6:
-      CondTest2();
-  break;
-    case 7:
-      CondTest3();
-  break;
-    case 8:
-      CondTest4();
-  break;
-    case 9:
-      CondTest5();
+      LockTest5();
   break;
     case 10:
-      CondTest6();
+      CondTest1();
   break;
     case 11:
-      CondTest7();
+      CondTest2();
   break;
     case 12:
-      CondTest8();
+      CondTest3();
   break;
     case 13:
-      CondTest9();
+      CondTest4();
   break;
     case 14:
-      //MTest1();
+      CondTest5();
+  break;
+    case 15:
+      CondTest6();
+  break;
+    case 16:
+      CondTest7();
+  break;
+    case 17:
+      CondTest8();
+  break;
+    case 18:
+      CondTest9();
+  break;
+    case 20:
+     //MTest1();
   break;
     case 30:
       Part3Test1();
