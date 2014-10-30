@@ -88,18 +88,14 @@ Thread::~Thread()
 {
     DEBUG('t', "Deleting thread \"%s\"\n", name);
 
-    DEBUG('t', "FLAG0\n");
     delete this->cond;
-    DEBUG('t', "FLAG0.5\n");
     delete this->lock;
     this->cond = NULL;
     this->lock = NULL;
     //PROBLEM: What is meant by "Need to delete sych primitives used by
     //Join as well?
 
-    DEBUG('t', "FLAG1\n");
     ASSERT(this != currentThread);
-    DEBUG('t', "FLAG2\n");
     if (stack != NULL)
         DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
 }
@@ -246,16 +242,12 @@ void
 Thread::Yield ()
 {
     Thread *nextThread;
-    printf("FLAG000\n");
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
-    printf("FLAG00\n");
     ASSERT(this == currentThread);
-    printf("FLAG0\n");
 
     DEBUG('t', "Yielding thread \"%s\"\n", getName());
 
     nextThread = scheduler->FindNextToRun();
-    printf("FLAG1\n");
     if (nextThread != NULL) {
         scheduler->ReadyToRun(this);
         scheduler->Run(nextThread);

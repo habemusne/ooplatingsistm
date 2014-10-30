@@ -255,7 +255,6 @@ void CondThread5(int param) {
 void CondTest2()
 {
     DEBUG('t', "Entering CondTest2");
-printf("haha");
     lockTest5 = new Lock("CondTest2_lock");
     Cond1 = new Condition("Cond1");
 

@@ -57,7 +57,6 @@ List::List()
 
 List::~List()
 {
-    printf("list.cc:entering List::~List()\n");
     while (Remove() != NULL)
         ;	 // delete all the list elements
 }
@@ -155,7 +154,6 @@ List::Mapcar(VoidFunctionPtr func)
 bool
 List::IsEmpty()
 {
-    printf("list.cc:entering List::IsEmpty()\n");
     if (first == NULL)
         return TRUE;
     else
@@ -219,7 +217,6 @@ List::SortedInsert(void *item, int sortKey)
 void *
 List::SortedRemove(int *keyPtr)
 {
-    printf("list.cc:entering SortedRemove\n");
     ListElement *element = first;
     void *thing;
 
@@ -235,9 +232,7 @@ List::SortedRemove(int *keyPtr)
     }
     if (keyPtr != NULL)
         *keyPtr = element->key;
-    printf("list.cc: deleting\n");
     delete element;
-    printf("list.cc: deleted\n");
     return thing;
 }
 

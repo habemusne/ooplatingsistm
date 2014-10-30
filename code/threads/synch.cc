@@ -109,11 +109,8 @@ Lock::Lock(char* debugName) {
 Lock::~Lock() {
 
     //a lock should not be deleted if a thread is holding it
-    printf("synch.cc:Entering ~Lock()\n");
     ASSERT(this->held == 0);
-    printf("synch.cc: deleting name in Lock\n");
     //delete this->name;
-    printf("synch.cc: deleting queue in Lock\n");
     delete this->queue;
     this->name = NULL;
     this->queue = NULL;
@@ -163,13 +160,10 @@ Condition::Condition(char* debugName) {
 
 Condition::~Condition() {
   //should not have threads waiting on queue.
-  printf("synch.cc:entering Condition::~Condition()\n");
   ASSERT(queue->IsEmpty());
-  printf("synch.cc:deleting the name in cond\n");
   printf(this->name);
   printf("\n");
   //delete this->name;
-  printf("synch.cc:deleting the queue in cond\n");
   delete this->queue;
   this->name = NULL;
   this->queue = NULL;
