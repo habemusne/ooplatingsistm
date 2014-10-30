@@ -561,11 +561,11 @@ void MTest2(){
   t->Fork(MailboxThread4,0);
 }
 
-//mtest3: send, send, receive, receive
+//mtest3: send, send, receive, receive. Seperate threads
 void MailboxThread5(int param) {
   printf("MT5:(1)sending first\n");
   mailbox1->Send(m);
-  printf("MT5:(5)sent first.\n");
+  printf("MT5:(7)sent first.\n");
 }
 
 void MailboxThread6(int param) {
@@ -582,78 +582,156 @@ void MailboxThread7(int param) {
 }
 
 void MailboxThread8(int param) {
-  printf("MT8:(6)receive second\n");
+  printf("MT8:(5)receive second\n");
   mailbox1->Receive(&m1);
-  printf("MT8:(7)received second\n");
+  printf("MT8:(6)received second\n");
 }
 
 void MTest3(){
   DEBUG('t', "Entering MTest3");
   
   mailbox1 = new Mailbox("Mailbox1");
-  Thread *t = new Thread("mthread 1");
+  Thread *t = new Thread("mthread 5");
   t->Fork(MailboxThread5,0);
-  t = new Thread("mthread 2");
+  t = new Thread("mthread 6");
   t->Fork(MailboxThread6,0);
-  t = new Thread("mthread 3");
+  t = new Thread("mthread 7");
   t->Fork(MailboxThread7,0);
-  t = new Thread("mthread 4");
+  t = new Thread("mthread 8");
   t->Fork(MailboxThread8,0);
 }
 
-//diff mailbox: ssrr
-void MTest6(){
+//mtest4: receive, receive, send, send. Seperate threads
+void MailboxThread9(int param) {
+  printf("MT9:(1)receiving first\n");
+  mailbox1->Receive(&m);
+  printf("MT9:(7)received first.\n");
+}
+
+void MailboxThread10(int param) {
+  printf("MT10:(2)receiving second\n");
+  mailbox1->Receive(&m1);
+  printf("MT10:(8)received second\n");
+}
+
+void MailboxThread11(int param) {
+  printf("MT11:(3)sending first\n");
+  mailbox1->Send(m);
+  printf("MT11:(4)sent second\n");
+  
+}
+
+void MailboxThread12(int param) {
+  printf("MT12:(5)sending second\n");
+  mailbox1->Send(m1);
+  printf("MT12:(6)sent second\n");
+}
+
+void MTest4(){
+  DEBUG('t', "Entering MTest4");
+  
+  mailbox1 = new Mailbox("Mailbox1");
+  Thread *t = new Thread("mthread 9");
+  t->Fork(MailboxThread9,0);
+  t = new Thread("mthread 10");
+  t->Fork(MailboxThread10,0);
+  t = new Thread("mthread 11");
+  t->Fork(MailboxThread11,0);
+  t = new Thread("mthread 12");
+  t->Fork(MailboxThread12,0);
+}
+
+//MTest5: send
+void MailboxThread13(int param) {
+  printf("MT13:(1)sending\n");
+  mailbox1->Send(m);
+  printf("MT13:sent [UNEXPECTED]\n");
+}
+
+void MTest5() {
+  DEBUG('t', "Entering MTest5");
+  
+  mailbox1 = new Mailbox("Mailbox1");
+  Thread *t = new Thread("mthread 13");
+  t->Fork(MailboxThread13,0);
+}
+
+//MTest6: receive
+void MailboxThread14(int param) {
+  printf("MT14:(1)receiving\n");
+  mailbox1->Receive(&m);
+  printf("MT14:received [UNEXPECTED]\n");
+}
+
+void MTest6() {
   DEBUG('t', "Entering MTest6");
   
   mailbox1 = new Mailbox("Mailbox1");
-  mailbox2 = new Mailbox("Mailbox2");
+  Thread *t = new Thread("mthread 14");
+  t->Fork(MailboxThread14,0);
+}
 
-  Thread *t = new Thread("mthread 1");
-  t->Fork(MailboxThread1,0);
-  Thread *t1 = new Thread("mthread 4");
-  t1->Fork(MailboxThread4,0);
-  Thread *t2 = new Thread("mthread 2");
-  t2->Fork(MailboxThread2,0);
-  Thread *t3 = new Thread("mthread 3");
-  t3->Fork(MailboxThread3,0);
+//MTest7: send, send, receive
+void MailboxThread15(int param) {
+  printf("MT15:(1)sending\n");
+  mailbox1->Send(m);
+  printf("MT15:(5)sent\n");
+}
+
+void MailboxThread16(int param) {
+  printf("MT16:(2)send\n");
+  mailbox1->Send(m1);
+  printf("MT16:sent [UNEXPECTED]\n");
+}
+
+void MailboxThread17(int param) {
+  printf("MT17:(3)receiving\n");
+  mailbox1->Receive(&m);
+  printf("MT17:(4)received\n");
 }
 
 void MTest7(){
   DEBUG('t', "Entering MTest7");
   
   mailbox1 = new Mailbox("Mailbox1");
-  mailbox2 = new Mailbox("Mailbox2");
-
-  Thread *t = new Thread("mthread 1");
-  t->Fork(MailboxThread1,0);
-  Thread *t1 = new Thread("mthread 4");
-  t1->Fork(MailboxThread4,0);
-  Thread *t2 = new Thread("mthread 3");
-  t2->Fork(MailboxThread3,0);
-  Thread *t3 = new Thread("mthread 2");
-  t3->Fork(MailboxThread2,0);
+  Thread *t = new Thread("mthread 15");
+  t->Fork(MailboxThread15,0);
+  t = new Thread("mthread 16");
+  t->Fork(MailboxThread16,0);
+  t = new Thread("mthread 17");
+  t->Fork(MailboxThread17,0);
 }
 
-//one send
+//MTest8: receive, receive, send
+void MailboxThread18(int param) {
+  printf("MT18:(1)receiving\n");
+  mailbox1->Receive(&m);
+  printf("MT18:(5)received\n");
+}
+
+void MailboxThread19(int param) {
+  printf("MT19:(2)receiving\n");
+  mailbox1->Receive(&m1);
+  printf("MT19:received [UNEXPECTED]\n");
+}
+
+void MailboxThread20(int param) {
+  printf("MT20:(3)sending\n");
+  mailbox1->Send(m);
+  printf("MT20:(4)sent\n");
+}
+
 void MTest8(){
   DEBUG('t', "Entering MTest8");
   
   mailbox1 = new Mailbox("Mailbox1");
-
-  Thread *t = new Thread("mthread 1");
-  t->Fork(MailboxThread1,0);
+  Thread *t = new Thread("mthread 18");
+  t->Fork(MailboxThread18,0);
+  t = new Thread("mthread 19");
+  t->Fork(MailboxThread19,0);
+  t = new Thread("mthread 20");
+  t->Fork(MailboxThread20,0);
 }
-
-//one receive
-void MTest9(){
-  DEBUG('t', "Entering MTest9");
-  
-  mailbox1 = new Mailbox("Mailbox1");
-
-  Thread *t = new Thread("mthread 2");
-  t->Fork(MailboxThread2,0);
-}
-
 
 //----------------------------------------------------------------------
 // Part3Test
@@ -721,16 +799,33 @@ Part3Test1()
 
 
 //test2: a thread that will be joined only is destoryed once join has been called on it
+Lock* part3Lock = NULL;
+Condition* part3Cond = NULL;
+
 void Part3Thread1(Thread *joinee) {
+  printf("T1:(1)yield 1\n");
+  currentThread->Yield();
+  printf("T1:(3)yield 2\n");
+  currentThread->Yield();
+  printf("T1:(5)yield 3\n");
+  currentThread->Yield();
+  printf("T1:(6)joining\n");
+  if (threadToBeDestroyed == joinee)
+    printf("NO!!! joinee is being deleted before join!!!!\n")
   joinee->Join();
+  if (threadToBeDestroyed == joinee)
+    printf("Great, joinee is being deleted after join\n")
+  printf("T1:(7)joined T2\n");
 }
 
 void Part3Thread2() {
-
+  printf("T2:(2)yield 1\n");
+  currentThread->Yield();
+  printf("T2:(4)yielded 1. Ready to finish.\n");
 }
 
 void Part3Test2() {
-  DEBUG('t', "Entering Part3Test2*()");
+  DEBUG('t', "Entering Part3Test2()");
   Thread *joiner = new Thread("t1",0);
   Thread *joinee = new Thread("t2",1);
   joiner->Fork((VoidFunctionPtr) Part3Thread1, (int) joinee);
@@ -738,11 +833,166 @@ void Part3Test2() {
   printf("Forked off the joiner and joiner threads.\n");
 }
 
+//test3: if a parent calls Join on a child and the child is still executing, the parent waits
+void Part3Thread3(Thread *joinee) {
+  printf("T3:(1)yield 1\n");
+  currentThread->Yield();
+  printf("T3:(3)joining T4\n");
+  if (threadToBeDestroyed == joinee)
+    printf("NO!!! joinee is being deleted before join!!!!\n")
+  joinee->Join();
+  if (threadToBeDestroyed == joinee)
+    printf("Great, joinee is being deleted after join\n")
+  printf("T3:(8)joined T4\n");
+}
+
+void Part3Thread4() {
+  printf("T4:(2)yield 1\n");
+  currentThread->Yield();
+  printf("T4:(4)yield 2\n");
+  currentThread->Yield();
+  printf("T4:(5)yield 3\n");
+  currentThread->Yield();
+  printf("T4:(6)yield 4\n");
+  currentThread->Yield();  
+  printf("T4:(7)yielded 4\n");
+}
+
+void Part3Test3() {
+  DEBUG('t', "Entering Part3Test3()");
+  Thread *joiner = new Thread("t3",0);
+  Thread *joinee = new Thread("t4",1);
+  joiner->Fork((VoidFunctionPtr) Part3Thread3, (int) joinee);
+  joinee->Fork((VoidFunctionPtr) Part3Thread4, 0);
+  printf("Forked off the joiner and joiner threads.\n");
+}
+
+//test4: if a parent calls Join on a child and the child has finished executing, the parent does not block
+void Part3Thread5(Thread *joinee) {
+  printf("T5:(1)yield 1\n");
+  currentThread->Yield();
+  printf("T5:(3)yield 2\n");
+  currentThread->Yield();
+  printf("T5:(5)yield 3\n");
+  currentThread->Yield();
+  printf("T5:(6)joining\n");
+  if (threadToBeDestroyed == joinee)
+    printf("NO!!! joinee is being deleted before join!!!!\n")
+  joinee->Join();
+  if (threadToBeDestroyed == joinee)
+    printf("Great, joinee is being deleted after join\n")
+  printf("T5:(7)joined T2\n");
+  currentThread->Yield();
+  printf("T5:(8)yield 5\n");
+  currentThread->Yield();
+  printf("T5:(9)yield 6\n");
+  currentThread->Yield();
+  printf("T5:(10)yielded 6\n");
+}
+
+void Part3Thread6() {
+  printf("T6:(2)yield 1\n");
+  currentThread->Yield();
+  printf("T6:(4)yielded 1. Ready to finish.\n");
+}
+
+void Part3Test4() {
+  DEBUG('t', "Entering Part3Test4()");
+  Thread *joiner = new Thread("t5",0);
+  Thread *joinee = new Thread("t6",1);
+  joiner->Fork((VoidFunctionPtr) Part3Thread5, (int) joinee);
+  joinee->Fork((VoidFunctionPtr) Part3Thread6, 0);
+  printf("Forked off the joiner and joiner threads.\n");
+}
+
+//test5: a thread does not call Join on itself
+void Part3Thread7 () {
+  printf("T7:(1)Joining myself\n");
+  currentThread->Join();
+  printf("T7:joined myself [UNEXPECTED]\n");
+}
+
+void Part3Test5() {
+  DEBUG('t', "Entering Part3Test5()");
+  Thread *joinee = new Thread("t7",1);
+  joinee->Fork((VoidFunctionPtr) Part3Thread7, 0);
+  printf("Forked off the joiner and joiner threads.\n");
+}
+
+//test6: Join is only invoked on threads created to be joined
+void Part3Thread8(Thread *joinee) {
+  printf("T8:(1)joining T2\n")
+  joinee->Join();
+  printf("T8:joined T2 [UNEXPECTED]\n");
+}
+
+void Part3Thread9() {
+  printf("T9:yield 1 [UNEXPECTED]\n");
+  currentThread->Yield();
+  printf("T9:yielded 1. Ready to finish. [UNEXPECTED]\n");
+}
+
+void Part3Test6() {
+  DEBUG('t', "Entering Part3Test6()");
+  Thread *joiner = new Thread("t8",0);
+  Thread *joinee = new Thread("t9",0);
+  joiner->Fork((VoidFunctionPtr) Part3Thread8, (int) joinee);
+  joinee->Fork((VoidFunctionPtr) Part3Thread9, 0);
+  printf("Forked off the joiner and joiner threads.\n");
+}
+
+//test7: Join is only called on a thread that has forked
+void Part3Thread10(Thread *joinee) {
+  printf("T8:(1)joining T2\n")
+  joinee->Join();
+  printf("T8:joined T2 [UNEXPECTED]\n");
+}
+
+void Part3Thread10(Thread *joinee) {
+
+}
+
+void Part3Test7() {
+  DEBUG('t', "Entering Part3Test7()");
+  Thread *joiner = new Thread("t10",0);
+  Thread *joinee = new Thread("t11",0);
+  joiner->Fork((VoidFunctionPtr) Part3Thread10, (int) joinee);
+  printf("Forked off the joiner and joiner threads.\n");
+}
+
+//test8: Join is not called more than once on a thread
+void Part3Thread11(Thread *joinee) {
+  printf("****NOTE: SEGMENTATION FAULT IS ALLOWED IN THIS CASE****\n")
+  printf("T11: (1)joining T12 \n");
+  joinee->Join();
+  printf("T11: (5)joined T12. Joining T12 again\n");
+  joinee->Join();
+  printf("T11: joined T12 again [UNEXPECTED]\n");
+}
+
+void Part3Thread12() {
+  printf("T12:(2)yield 1\n");
+  currentThread->Yield();
+  printf("T12:(3)yield2.\n");
+  currentThread->Yield();
+  printf("T12:(4)yielded 2. Ready to finish.\n");
+}
+
+void Part3Test8() {
+  DEBUG('t', "Entering Part3Test8()");
+  Thread *joiner = new Thread("t11",0);
+  Thread *joinee = new Thread("t12",1);
+  joiner->Fork((VoidFunctionPtr) Part3Thread11, (int) joinee);
+  joinee->Fork((VoidFunctionPtr) Part3Thread12, 0);
+  printf("Forked off the joiner and joiner threads.\n");
+}
+
+
 
 void
 ThreadTest()
 {
-    switch (testnum) {
+  switch (testnum) {
     case 0:
      ThreadTest1();
   break;
@@ -797,10 +1047,24 @@ ThreadTest()
     case 22:
       MTest3();
   break;
+    case 23:
+      MTest4();
+  break;
+    case 24:
+      MTest5();
+  break;
+    case 25:
+      MTest6();
+  break;
+    case 26:
+      MTest7();
+  break;
+    case 27:
+      MTest8();
+  break;
     case 30:
       Part3Test1();
   break;
-
     default:
         printf("No test specified.\n");
         break;

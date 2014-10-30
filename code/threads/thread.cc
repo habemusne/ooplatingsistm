@@ -330,6 +330,13 @@ void Thread::Join() {
     //From project1 slide: A thread cannot call Join on itself
     ASSERT(this != currentThread);
 
+    //From write-up: Join is not called more than once on a thread
+    ASSERT(this->joinIsCalled == false);
+
+    this->joinIsCalled = true;
+    this->parentThread = currentThread;
+
+
     this->joinIsCalled = true;
     this->parentThread = currentThread;
 
