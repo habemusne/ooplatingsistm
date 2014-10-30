@@ -216,8 +216,8 @@ void CondTest1()
     Thread *t = new Thread("one");
     t->Fork(CondThread1, 0);
 
-    t = new Thread("two");
-    t->Fork(CondThread2, 0);
+    Thread *t1 = new Thread("two");
+    t1->Fork(CondThread2, 0);
 }
 
 
@@ -779,7 +779,7 @@ ThreadTest()
       CondTest9();
   break;
     case 20:
-     //MTest1();
+      MTest1();
   break;
     case 30:
       Part3Test1();

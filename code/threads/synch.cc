@@ -196,8 +196,6 @@ void Condition::Signal(Lock* conditionLock) {
   thread = (Thread *)queue->Remove();
   if (thread != NULL)
     scheduler->ReadyToRun(thread);
-  
-  delete thread;
 
   (void) interrupt->SetLevel(oldLevel);
 }
@@ -214,7 +212,6 @@ void Condition::Broadcast(Lock* conditionLock) {
       scheduler->ReadyToRun(thread);
   }
   
-  delete thread;
   (void) interrupt->SetLevel(oldLevel);
 }
 
@@ -240,7 +237,7 @@ void Mailbox::Send(int message){
   if(data->IsEmpty() == false)
     receive->Wait(locker);
   
-  data->Append((void *)data);
+  data->Append((void *)message);
   send->Signal(locker);
   locker->Release();
 }
@@ -251,7 +248,8 @@ void Mailbox::Receive(int * message){
   if(data->IsEmpty())
     send->Wait(locker);
 
-  data->Remove();
+  int value = (int)data->Remove();
+  printf("*********************Received value: %d\n", value);
   receive->Signal(locker);
   locker->Release();
 }
