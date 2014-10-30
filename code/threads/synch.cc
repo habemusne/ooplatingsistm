@@ -108,8 +108,10 @@ Lock::Lock(char* debugName) {
 }
 Lock::~Lock() {
 
+    printf("lock:this->held = %d\n", this->held);
     //a lock should not be deleted if a thread is holding it
-    ASSERT(this->held == 0);
+    ASSERT(this->held == 0 && !isHeldByCurrentThread());
+    //ASSERT(this->queue->IsEmpty());
     //delete this->name;
     delete this->queue;
     this->name = NULL;

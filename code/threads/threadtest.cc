@@ -66,22 +66,22 @@ Lock *locktest4 = NULL;
 void
 LockThread1(int param)
 {
-    printf("L1:0\n");
+    printf("(1)L1:0\n");
     locktest1->Acquire();
-    printf("L1:1\n");
+    printf("(2)L1:1\n");
     currentThread->Yield();
-    printf("L1:2\n");
+    printf("(3)L1:2\n");
     locktest1->Release();
-    printf("L1:3\n");
+    printf("(4)L1:3\n");
 }
 
 //Aquiring the same Lock twice
 void
 LockThread2(int param)
 {
-    printf("L2:acquire\n");
+    printf("(1)L2:acquire\n");
     locktest2->Acquire();
-    printf("L2:acquire\n");
+    printf("(2)L2:acquire\n");
     locktest2->Acquire();
     printf("L2:1 [UNEXPECTED] \n");
     currentThread->Yield();
@@ -93,29 +93,29 @@ LockThread2(int param)
 //release a lock that isn't held
 void LockThread3(int param)
 {
-    printf("L3:release\n");
+    printf("(1)L3:release\n");
     locktest3->Release();
-    printf("L3:released [UNEXPECTED]");
+    printf("L3:released [UNEXPECTED]\n");
 }
 
 //deleting a Lock that is held
 void LockThread4(int param)
 {
-    printf("L4:acquire\n");
+    printf("(1)L4:acquire\n");
     locktest4->Acquire();
-    printf("L4:delete\n");
+    printf("(2)L4:delete\n");
     locktest4->~Lock();
-    printf("L4:deleted [UNEXPECTED]");
+    printf("L4:deleted [UNEXPECTED]\n");
 }
 
 void LockThread5(int param) {
-  printf("L5:acquire\n");
+  printf("(1)L5:acquire\n");
   locktest4->Acquire();
-  printf("L5:acquired\n");
+  printf("(2)L5:acquired\n");
 }
 
 void LockThread6(int param) {
-  printf("L6:release\n");
+  printf("(3)L6:release\n");
   locktest4->Release();
   printf("L6:released [UNEXPECTED]\n");
 }
@@ -186,23 +186,23 @@ Condition *Cond1 = NULL;
 Lock *lockTest5 = NULL;
 
 void CondThread1(int param) {
-  printf("CT1: acquiring\n");
+  printf("(1)CT1: acquiring\n");
   lockTest5->Acquire();
-  printf("CT1: acquired. before wait\n");
+  printf("(2)CT1: acquired. before wait\n");
   Cond1->Wait(lockTest5);
-  printf("CT1: after wait\n");
+  printf("(7)CT1: after wait\n");
   lockTest5->Release();
-  printf("CT1: released\n");
+  printf("(8)CT1: released\n");
 }
 
 void CondThread2(int param) {
-  printf("CT2: acquiring\n");
+  printf("(3)CT2: acquiring\n");
   lockTest5->Acquire();
-  printf("CT2: acquired. before signal\n");
+  printf("(4)CT2: acquired. before signal\n");
   Cond1->Signal(lockTest5);
-  printf("CT2: after signal\n");
+  printf("(5)CT2: after signal\n");
   lockTest5->Release();
-  printf("CT2: released\n");
+  printf("(6)CT2: released\n");
 }
 
 void CondTest1()
@@ -216,40 +216,40 @@ void CondTest1()
     Thread *t = new Thread("one");
     t->Fork(CondThread1, 0);
 
-    Thread *t1 = new Thread("two");
-    t1->Fork(CondThread2, 0);
+    t = new Thread("two");
+    t->Fork(CondThread2, 0);
 }
 
 
 //CondTest2: two threads wait, one signal
 void CondThread3(int param) {
-  printf("CT3: acquiring");
+  printf("(1)CT3: acquiring\n");
   lockTest5->Acquire();
-  printf("CT3: acquired. before wait");
+  printf("(2)CT3: acquired. before wait\n");
   Cond1->Wait(lockTest5);
-  printf("CT3: after wait");
+  printf("(9)CT3: after wait\n");
   lockTest5->Release();
-  printf("CT3: released");
+  printf("(10)CT3: released\n");
 }
 
 void CondThread4(int param) {
-  printf("CT4: acquiring");
+  printf("(3)CT4: acquiring\n");
   lockTest5->Acquire();
-  printf("CT4: acquired. before wait");
+  printf("(4)CT4: acquired. before wait\n");
   Cond1->Wait(lockTest5);
-  printf("CT4: after wait [UNEXPECTED]");
+  printf("CT4: after wait [UNEXPECTED]\n");
   lockTest5->Release();
-  printf("CT4: released [UNEXPECTED]");
+  printf("CT4: released [UNEXPECTED]\n");
 }
 
 void CondThread5(int param) {
-  printf("CT5: acquiring");
+  printf("(5)CT5: acquiring\n");
   lockTest5->Acquire();
-  printf("CT5: acquired. before signal");
+  printf("(6)CT5: acquired. before signal\n");
   Cond1->Signal(lockTest5);
-  printf("CT5: after signal");
+  printf("(7)CT5: after signal\n");
   lockTest5->Release();
-  printf("CT5: released");
+  printf("(8)CT5: released\n");
 }
 
 void CondTest2()
@@ -261,8 +261,8 @@ void CondTest2()
     Thread *t = new Thread("three");
     t->Fork(CondThread3, 0);
 
-    Thread *t1 = new Thread("four");
-    t1->Fork(CondThread4, 0);
+    t = new Thread("four");
+    t->Fork(CondThread4, 0);
 
     t = new Thread("five");
     t->Fork(CondThread5, 0);
@@ -271,11 +271,11 @@ void CondTest2()
 
 //ConTest3: waiting on a condition variable without holding lock
 void CondThread6(int param) {
-    printf("CT6:before wait");
+    printf("(1)CT6:before wait\n");
     Cond1->Wait(lockTest5);
-    printf("CT6':waited [UNEXPECTED]");
+    printf("CT6':waited [UNEXPECTED]\n");
     lockTest5->Release();
-    printf("CT6: released [UNEXPECTED]");
+    printf("CT6: released [UNEXPECTED]\n");
 }
 
 void CondTest3() {
@@ -289,34 +289,33 @@ void CondTest3() {
 
 //broadcasting wakes up all threads,
 void CondThread7(int param) {
-  printf("CT7: acquiring\n");
+  printf("(1)CT7: acquiring\n");
   lockTest5->Acquire();
-  printf("CT7: acquired. before signal\n");
+  printf("(2)CT7: acquired. before signal\n");
   Cond1->Wait(lockTest5);
-  printf("CT7: after broadcasting\n");
+  printf("(9)CT7: after broadcasting\n");
   lockTest5->Release();
-  printf("CT7: after releasing\n");
+  printf("(10)CT7: after releasing\n");
 }
 
 void CondThread8(int param) {
-  printf("CT8: acquiring\n");
+  printf("(3)CT8: acquiring\n");
   lockTest5->Acquire();
-  printf("CT8: acquired. before signal\n");
+  printf("(4)CT8: acquired. before signal\n");
   Cond1->Wait(lockTest5);
-  printf("CT8: after broadcasting\n");
+  printf("(11)CT8: after broadcasting\n");
   lockTest5->Release();
-  printf("CT8: after releasing\n");
+  printf("(12)CT8: after releasing\n");
 }
 
 void CondThread9(int param) {
-  printf("CT9: acquiring\n");
+  printf("(5)CT9: acquiring\n");
   lockTest5->Acquire();
-  printf("CT9: signaling\n");
+  printf("(6)CT9: broadcasting\n");
   Cond1->Broadcast(lockTest5);
-  printf("CT9: signaled\n");
-  printf("CT9: after broadcasting\n");
+  printf("(7)CT9: broadcasted. releasing\n");
   lockTest5->Release();
-  printf("CT9: after releasing\n");
+  printf("(8)CT9: released\n");
 }
 
 void CondTest4() {
@@ -325,75 +324,84 @@ void CondTest4() {
     Cond1 = new Condition("Cond1");
     Thread *t = new Thread("seven");
     t->Fork(CondThread7, 0);
-    Thread *t1 = new Thread("eight");
-    t1->Fork(CondThread8, 0);
-    Thread *t2 = new Thread("nine");
-    t2->Fork(CondThread9, 0);
+    t = new Thread("eight");
+    t->Fork(CondThread8, 0);
+    t = new Thread("nine");
+    t->Fork(CondThread9, 0);
 }
 
 // CondTest5: signaling to a condition variable with no waiters is a no-op,
 // and future threads that wait will block
 void CondThread10(int param) {
-    printf("CT10: acquiring\n");
+    printf("(1)CT10: acquiring\n");
     lockTest5->Acquire();
-    printf("CT10: signaling\n");
+    printf("(2)CT10: signaling\n");
     Cond1->Signal(lockTest5);
-    printf("CT10: signaled\n");
-    printf("CT10: releasing\n");
+    printf("(3)CT10: signaled. releasing\n");
     lockTest5->Release();
-    printf("CT10: released\n");
+    printf("(4)CT10: released\n");
 }
 
 void CondThread11(int param) {
-    printf("CT11: acquiring\n");
+    printf("(5)CT11: acquiring\n");
     lockTest5->Acquire();
-    printf("CT11: waiting\n");
+    printf("(6)CT11: waiting\n");
     Cond1->Wait(lockTest5);
-    printf("CT11: releasing [UNEXPECTED]\n");
+    printf("(13)CT11: releasing\n");
     lockTest5->Release();
-    printf("CT11: released [UNEXPECTED]\n");
+    printf("(14)CT11: released\n");
 }
 
 void CondThread12(int param) {
-    printf("CT12: acquiring\n");
+    printf("(7)CT12: acquiring\n");
     lockTest5->Acquire();
-    printf("CT12: waiting\n");
+    printf("(8)CT12: waiting\n");
     Cond1->Wait(lockTest5);
     printf("CT12: releasing [UNEXPECTED]\n");
     lockTest5->Release();
     printf("CT12: released [UNEXPECTED]\n");
 }
 
+void CondThread12_2(int param) {
+  printf("(9)CT12_2:acquiring\n");
+  lockTest5->Acquire();
+  printf("(10)CT12_2:acquired. Signaling\n");
+  Cond1->Signal(lockTest5);
+  printf("(11)CT12_2:signaled. Releasing\n");
+  lockTest5->Release();
+  printf("(12)CT12_2:released\n");
+}
+
 void CondTest5() {
     DEBUG('t', "Entering CondTest5");
-    printf("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHH ASK THE TEACHER ABOUT THIS CASE HHHHHHHHHHHHHHHHHHH\n");
     lockTest5 = new Lock("CondTest5_lock");
     Cond1 = new Condition("Cond1");
     Thread *t = new Thread("ten");
     t->Fork(CondThread10, 0);
-    Thread *t1 = new Thread("eleven");
-    t1->Fork(CondThread11, 0);
-    Thread *t2 = new Thread("twelve");
-    t2->Fork(CondThread12, 0);
+    t = new Thread("eleven");
+    t->Fork(CondThread11, 0);
+    t = new Thread("twelve");
+    t->Fork(CondThread12, 0);
+    t = new Thread("twelve_two");
+    t->Fork(CondThread12_2, 0);
 }
 
 //CondTest6: broadcasting to a condition variable with no waiters is a no-op, 
 //and future threads that wait will block
 void CondThread13(int param) {
-    printf("CT13: acquiring\n");
+    printf("(1)CT13: acquiring\n");
     lockTest5->Acquire();
-    printf("CT13: broadcasting\n");
+    printf("(2)CT13: broadcasting\n");
     Cond1->Broadcast(lockTest5);
-    printf("CT13: broadcasted\n");
-    printf("CT13: releasing\n");
+    printf("(3)CT13: broadcasted. Releasing\n");
     lockTest5->Release();
-    printf("CT13: released\n");
+    printf("(4)CT13: released\n");
 }
 
 void CondThread14(int param) {
-    printf("CT14: acquiring\n");
+    printf("(5)CT14: acquiring\n");
     lockTest5->Acquire();
-    printf("CT14: waiting\n");
+    printf("(6)CT14: waiting\n");
     Cond1->Wait(lockTest5);
     printf("CT14: releasing [UNEXPECTED] \n");
     lockTest5->Release();
@@ -401,9 +409,9 @@ void CondThread14(int param) {
 }
 
 void CondThread15(int param) {
-    printf("CT15: acquiring\n");
+    printf("(7)CT15: acquiring\n");
     lockTest5->Acquire();
-    printf("CT15: waiting\n");
+    printf("(8)CT15: waiting\n");
     Cond1->Wait(lockTest5);
     printf("CT15: releasing [UNEXPECTED] \n");
     lockTest5->Release();
@@ -411,33 +419,30 @@ void CondThread15(int param) {
 }
 
 void CondTest6() {
-    printf("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHH ASK THE TEACHER ABOUT THIS CASE HHHHHHHHHHHHHHHHHHH");
     DEBUG('t', "Entering CondTest6");
     lockTest5 = new Lock("CondTest6_lock");
     Cond1 = new Condition("Cond1");
     Thread *t = new Thread("thirteen");
     t->Fork(CondThread13, 0);
-    Thread *t1 = new Thread("fourteen");
-    t1->Fork(CondThread14, 0);
-    Thread *t2 = new Thread("fifteen");
-    t2->Fork(CondThread15, 0);
+    t = new Thread("fourteen");
+    t->Fork(CondThread14, 0);
+    t = new Thread("fifteen");
+    t->Fork(CondThread15, 0);
 }
 
-//TODO
 //CondTest7: a thread calling Signal holds the Lock passed in to Signal
 void CondThread16(int param) {
-    printf("CT16: acquiring");
+    printf("(1)CT16: acquiring\n");
     lockTest5->Acquire();
-    printf("CT16: waiting");
+    printf("(2)CT16: waiting\n");
     Cond1->Signal(lockTest5);
-    printf("CT16: releasing");
+    printf("(3)CT16: releasing\n");
     lockTest5->Release();
-    printf("CT16: released");
+    printf("(4)CT16: released\n");
 }
 
 void CondTest7() {
     DEBUG('t', "Entering CondTest7");
-    printf("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHH ASK THE TEACHER ABOUT THIS CASE HHHHHHHHHHHHHHHHHHH");
     lockTest5 = new Lock("CondTest7_lock");
     Cond1 = new Condition("Cond1");
     Thread *t = new Thread("sixteen");
@@ -446,19 +451,19 @@ void CondTest7() {
 
 //CondTest8: deleting a lock should have no threads on the wait queue
 void CondThread17(int param) {
-    printf("CT17: acquiring");
+    printf("(1)CT17: acquiring\n");
     lockTest5->Acquire();
-    printf("CT17: waiting");
+    printf("(2)CT17: waiting\n");
     Cond1->Wait(lockTest5);
-    printf("CT17: releasing");
-    lockTest5->Release();
-    printf("CT17: released");
+    printf("CT17: releasing [UNEXPECTED]\n");
+    //lockTest5->Release();
+    printf("CT17: released [UNEXPECTED]\n");
 }
 
 void CondThread18(int param) {
-    printf("CT18: deleting lock");
+    printf("(3)CT18: deleting lock\n");
     lockTest5->~Lock();
-    printf("CT18: lock deleted [UNEXPECTED]");
+    printf("CT18: lock deleted [UNEXPECTED]\n");
 }
 
 void CondTest8() {
@@ -474,19 +479,19 @@ void CondTest8() {
 
 //CondTest9: deleting a condition variable should have no threads on the wait queue
 void CondThread19(int param) {
-    printf("CT19: acquiring");
+    printf("(1)CT19: acquiring\n");
     lockTest5->Acquire();
-    printf("CT19: waiting");
+    printf("(2)CT19: waiting\n");
     Cond1->Wait(lockTest5);
-    printf("CT19: releasing");
+    printf("CT19: releasing [UNEXPECTED]\n");
     lockTest5->Release();
-    printf("CT19: released");
+    printf("CT19: released [UNEXPECTED]\n");
 }
 
 void CondThread20(int param) {
-    printf("CT20: deleting CV");
+    printf("(3)CT20: deleting CV\n");
     Cond1->~Condition();
-    printf("CT20: CV deleted [UNEXPECTED]");
+    printf("CT20: CV deleted [UNEXPECTED]\n");
 }
 
 void CondTest9() {
@@ -507,17 +512,20 @@ void CondTest9() {
 int m = 1;
 int m1 = 2;
 Mailbox * mailbox1 = NULL;
+
+//mtest1: first receive, then send
 void MailboxThread1(int param) {
-   mailbox1->Send(m);
-   printf("Mailbox1:send");
+   printf("MT1:(1)receiving\n");
+   mailbox1->Receive(&m);
+   printf("MT1:(4)received\n");
 }
 
 void MailboxThread2(int param) {
-   mailbox1->Receive(&m);
-   printf("Mailbox1:receive");
+   printf("MT2:(2)sending\n");
+   mailbox1->Send(m);
+   printf("MT2:(3)sent\n");
 }
 
-//same mailbox: first send then receive
 void MTest1(){
   DEBUG('t', "Entering MTest1");
   
@@ -528,66 +536,69 @@ void MTest1(){
   Thread *t1 = new Thread("mthread 2");
   t1->Fork(MailboxThread2, 0);
 }
-/*
+
+//mtest2: first send then receive
 Mailbox * mailbox2 = NULL;
 void MailboxThread3(int param){
-  mailbox2->Receive(&m1);
-  printf("Mailbox2:receive");
+  printf("MT3:(1)sending\n");
+  mailbox2->Send(m);
+  printf("MT3:(4)sent\n");
 }
 
 void MailboxThread4(int param){
-  mailbox2->Send(m1);
-  printf("Mailbox2:send");
+  printf("MT4:(2)receiving\n");
+  mailbox2->Receive(&m);
+  printf("MT4:(3)received\n");
 }
 
-//diff mailbox: first send then receive
 void MTest2(){
   DEBUG('t', "Entering MTest2");
   
   mailbox1 = new Mailbox("Mailbox1");
-  mailbox2 = new Mailbox("Mailbox2");
   Thread *t = new Thread("mthread 1");
-  t->Fork(MailboxThread1,0);
-  Thread *t1 = new Thread("mthread 3");
-  t1->Fork(MailboxThread3,0);
+  t->Fork(MailboxThread3,0);
+  t = new Thread("mthread 2");
+  t->Fork(MailboxThread4,0);
 }
 
+//mtest3: send, send, receive, receive
+void MailboxThread5(int param) {
+  printf("MT5:(1)sending first\n");
+  mailbox1->Send(m);
+  printf("MT5:(5)sent first.\n");
+}
 
-//same mailbox: first receive then send
+void MailboxThread6(int param) {
+  printf("MT6:(2)sending second\n");
+  mailbox1->Send(m1);
+  printf("MT6:(8)sent second\n");
+}
+
+void MailboxThread7(int param) {
+  printf("MT7:(3)receiving first\n");
+  mailbox1->Receive(&m);
+  printf("MT7:(4)received second\n");
+  
+}
+
+void MailboxThread8(int param) {
+  printf("MT8:(6)receive second\n");
+  mailbox1->Receive(&m1);
+  printf("MT8:(7)received second\n");
+}
+
 void MTest3(){
   DEBUG('t', "Entering MTest3");
   
   mailbox1 = new Mailbox("Mailbox1");
   Thread *t = new Thread("mthread 1");
-  t->Fork(MailboxThread1,0);
-  Thread *t1 = new Thread("mthread 2");
-  t1->Fork(MailboxThread2,0);
-}
-
-//diff mailbox: first receive then send
-void MTest4(){
-  DEBUG('t', "Entering MTest4");
-  
-  mailbox1 = new Mailbox("Mailbox1");
-  Thread *t = new Thread("mthread 3");
-  t->Fork(MailboxThread3,0);
-  Thread *t1 = new Thread("mthread 1");
-  t1->Fork(MailboxThread1,0);
-}
-
-//same mailbox: ssrr
-void MTest5(){
-  DEBUG('t', "Entering MTest5");
-  
-  mailbox1 = new Mailbox("Mailbox1");
-  Thread *t = new Thread("mthread 1");
-  t->Fork(MailboxThread1,0);
-  Thread *t1 = new Thread("mthread 1");
-  t1->Fork(MailboxThread1,0);
-  Thread *t2 = new Thread("mthread 2");
-  t2->Fork(MailboxThread2,0);
-  Thread *t3 = new Thread("mthread 2");
-  t3->Fork(MailboxThread2,0);
+  t->Fork(MailboxThread5,0);
+  t = new Thread("mthread 2");
+  t->Fork(MailboxThread6,0);
+  t = new Thread("mthread 3");
+  t->Fork(MailboxThread7,0);
+  t = new Thread("mthread 4");
+  t->Fork(MailboxThread8,0);
 }
 
 //diff mailbox: ssrr
@@ -642,7 +653,7 @@ void MTest9(){
   Thread *t = new Thread("mthread 2");
   t->Fork(MailboxThread2,0);
 }
-*/
+
 
 //----------------------------------------------------------------------
 // Part3Test
@@ -779,6 +790,12 @@ ThreadTest()
   break;
     case 20:
       MTest1();
+  break;
+    case 21:
+      MTest2();
+  break;
+    case 22:
+      MTest3();
   break;
     case 30:
       Part3Test1();
