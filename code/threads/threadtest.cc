@@ -742,12 +742,13 @@ void MTest8(){
 void
 Joiner(Thread *joinee)
 {
+  printf("*****************************Joinerrrrrrrrrrrrrrrrrrrrrrr\n");
   DEBUG('t', "test0");
   currentThread->Yield();
   DEBUG('t', "test1");
   currentThread->Yield();
   DEBUG('t', "test2");
-  printf("Waiting for the Joinee to finish executing.\n");
+  printf("*******************************************Waiting for the Joinee to finish executing.\n");
 
   currentThread->Yield();
   currentThread->Yield();
@@ -762,7 +763,7 @@ Joiner(Thread *joinee)
   currentThread->Yield();
   currentThread->Yield();
 
-  printf("Joinee has finished executing, we can continue.\n");
+  printf("****************************************Joinee has finished executing, we can continue.\n");
 
   currentThread->Yield();
   currentThread->Yield();
@@ -771,15 +772,16 @@ Joiner(Thread *joinee)
 void
 Joinee()
 {
+  printf("!!!!!!!!!!!!!!!!!!!!!!!!!!Joineeeeeeeeeeeeeeeeee\n");
   int i;
 
   for (i = 0; i < 5; i++) {
-    printf("Smell the roses.\n");
+    printf("*****************************************Smell the roses.\n");
     currentThread->Yield();
   }
 
   currentThread->Yield();
-  printf("Done smelling the roses!\n");
+  printf("*************************************************Done smelling the roses!\n");
   currentThread->Yield();
 }
 
@@ -794,7 +796,7 @@ Part3Test1()
   joinee->Fork((VoidFunctionPtr) Joinee, 0);
 
   // this thread is done and can go on its merry way
-  printf("Forked off the joiner and joiner threads.\n");
+  printf("***********************************************Forked off the joiner and joiner threads.\n");
 }
 
 
@@ -1066,25 +1068,25 @@ ThreadTest()
       Part3Test1();
   break;
     case 31:
-      Part3Test2();
+      Part3Test2(); //(1234567)
   break;
     case 32:
-      Part3Test3();
+      Part3Test3(); //(12345678)
   break;
     case 33:
-      Part3Test4();
+      Part3Test4(); //(123456789 10)
   break;
     case 34:
-      Part3Test5();
+      Part3Test5(); //(1)
   break;
     case 35:
-      Part3Test6();
+      Part3Test6(); //(1)
   break;
     case 36:
-      Part3Test7();
+      Part3Test7(); //(1)
   break;
     case 37:
-      Part3Test8();
+      Part3Test8(); //(12345)
   break;
     default:
         printf("No test specified.\n");

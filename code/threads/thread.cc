@@ -191,6 +191,8 @@ Thread::Finish ()
     //So this thread is safe to immediately delete itself
     if (this->join == 0) {
       threadToBeDestroyed = currentThread;
+      this->lock->Release();
+      Sleep();
     } 
     
     //else, there are more complex cases
@@ -203,7 +205,7 @@ Thread::Finish ()
         // So if parent calls "join", then the parent should signal this 
         // child's CV
         this->cond->Wait(this->lock);
-        threadToBeDestroyed = currentThread;
+        //*threadToBeDestroyed = currentThread;
       } 
 
       // else, then this->joinIsCalled == true, which means that the parent has
@@ -212,11 +214,14 @@ Thread::Finish ()
       // continue.
       else {
         this->cond->Signal(this->lock);
-        threadToBeDestroyed = currentThread;
+        //*threadToBeDestroyed = currentThread;
       }
     }
+    this->cond->Wait(this->lock);
     this->lock->Release();
-    Sleep();					// invokes SWITCH
+    threadToBeDestroyed = currentThread;
+    Sleep();
+    //*Sleep();					// invokes SWITCH
     // not reached
 }
 
@@ -359,6 +364,7 @@ void Thread::Join() {
       this->cond->Wait(this->lock);
     }
 
+    this->cond->Signal(this->lock);
     this->lock->Release();
 }
 
