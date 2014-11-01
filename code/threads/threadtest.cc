@@ -995,6 +995,14 @@ void Part3Test8() {
 //----------------------------------------------------------------------
 Condition *priorCond = NULL;
 Lock *priorLock = NULL;
+Thread *t1 = NULL;
+Thread *t2 = NULL;
+Thread *t3 = NULL;
+Thread *t4 = NULL;
+Thread *t5 = NULL;
+Thread *t6 = NULL;
+Thread *t7 = NULL;
+Thread *t8 = NULL;
 
 //test1: put two threads to sleep. Put the first with low priority, second with higher. Then wake them up
 void PriorThread1(int param) {
@@ -1017,7 +1025,7 @@ void PriorThread2(int param) {
   printf("(12)PT2:released\n");
 }
 
-void PriorThread3(int param, Thread *t1, Thread *t2) {
+void PriorThread3(int param) {
   printf("(5)PT3:acquiring\n");
   priorLock->Acquire();
   printf("(6)PT3:changing priority\n");
@@ -1036,12 +1044,12 @@ void PriorTest1() {
   DEBUG('t', "Entering PriorTest1()");
   priorCond = new Condition("cond");
   priorLock = new Lock("lock");
-  Thread* t1 = new Thread("t1");
-  Thread* t2 = new Thread("t2");
-  Thread* t3 = new Thread("t3");
+  t1 = new Thread("t1");
+  t2 = new Thread("t2");
+  t3 = new Thread("t3");
   t1->Fork((VoidFunctionPtr) PriorThread1, 0);
   t2->Fork((VoidFunctionPtr) PriorThread2, 0);
-  t3->Fork((VoidFunctionPtr) PriorThread3, 0, t1, t2);
+  t3->Fork((VoidFunctionPtr) PriorThread3, 0);
 }
 
 //test2: two waits. both set to same priority. signal, then signal
@@ -1065,7 +1073,7 @@ void PriorThread5(int param) {
   printf("(14)PT5:releasing\n");
 }
 
-void PriorThread6(int param, Thread *t1, Thread *t2) {
+void PriorThread6(int param) {
   printf("(5)PT6:acquiring\n");
   priorLock->Acquire();
   printf("(6)PT6:setting priority\n");
@@ -1084,12 +1092,12 @@ void PriorTest2() {
   DEBUG('t', "Entering PriorTest2()");
   priorCond = new Condition("cond");
   priorLock = new Lock("lock");
-  Thread* t1 = new Thread("t1");
-  Thread* t2 = new Thread("t2");
-  Thread* t3 = new Thread("t3");
+  t1 = new Thread("t1");
+  t2 = new Thread("t2");
+  t3 = new Thread("t3");
   t1->Fork((VoidFunctionPtr) PriorThread4, 0);
   t2->Fork((VoidFunctionPtr) PriorThread5, 0);
-  t3->Fork((VoidFunctionPtr) PriorThread6, 0, t1, t2);
+  t3->Fork((VoidFunctionPtr) PriorThread6, 0);
 }
 
 //test3: three threads wait. The fourth thread sets the second's 
@@ -1127,7 +1135,7 @@ void PriorThread9(int param) {
   printf("(15)PT9:released\n");
 }
 
-void PriorThread10(int param, Thread *t1, Thread *t2, Thread *t3) {
+void PriorThread10(int param) {
   printf("(7)PT10:acquiring\n");
   priorLock->Acquire();
   printf("(8)PT10:setting priority\n");
@@ -1136,9 +1144,9 @@ void PriorThread10(int param, Thread *t1, Thread *t2, Thread *t3) {
   t3->setPriority(20);
   t1->setPriority(10);
   printf("(9)PT10:signaling\n");
-  priorCond->Signal();
-  priorCond->Signal();
-  priorCond->Signal();
+  priorCond->Signal(priorLock);
+  priorCond->Signal(priorLock);
+  priorCond->Signal(priorLock);
   printf("(10)PT10:releasing\n");
   priorLock->Release();
   printf("(11)PT10:yielding\n");
@@ -1150,14 +1158,14 @@ void PriorTest3() {
   DEBUG('t', "Entering PriorTest3()");
   priorCond = new Condition("cond");
   priorLock = new Lock("lock");
-  Thread* t1 = new Thread("t1");
-  Thread* t2 = new Thread("t2");
-  Thread* t3 = new Thread("t3");
-  Thread* t4 = new Thread("t4");
+  t1 = new Thread("t1");
+  t2 = new Thread("t2");
+  t3 = new Thread("t3");
+  t4 = new Thread("t4");
   t1->Fork((VoidFunctionPtr) PriorThread7, 0);
   t2->Fork((VoidFunctionPtr) PriorThread8, 0);
   t3->Fork((VoidFunctionPtr) PriorThread9, 0);
-  t4->Fork((VoidFunctionPtr) PriorThread10, 0, t1, t2, t3);
+  t4->Fork((VoidFunctionPtr) PriorThread10, 0);
 }
 
 //test4:
@@ -1198,14 +1206,14 @@ void PriorTest3() {
 //Priotity:     10 8 5 4 3 3 3 2
 //
 //Expected threads printing order afterwards: 4 8 1 5 2 3 7 6
-void PriorTest11(int param) {
+void PriorThread11(int param) {
   currentThread->setPriority(5);
   printf("(1)PT11:yielding\n");
   currentThread->Yield();
   printf("(11)PT11:yielded\n");
 }
 
-void PriorTest12(int param) {
+void PriorThread12(int param) {
   currentThread->setPriority(3);
   printf("(2)PT12:yielding\n");
   currentThread->Yield();
@@ -1213,7 +1221,7 @@ void PriorTest12(int param) {
   
 }
 
-void PriorTest13(int param) {
+void PriorThread13(int param) {
   currentThread->setPriority(3);
   printf("(3)PT13:yielding\n");
   currentThread->Yield();
@@ -1221,7 +1229,7 @@ void PriorTest13(int param) {
 
 }
 
-void PriorTest14(int param) {
+void PriorThread14(int param) {
   currentThread->setPriority(10);
   printf("(4)PT14:yielding\n");
   currentThread->Yield();
@@ -1229,7 +1237,7 @@ void PriorTest14(int param) {
 
 }
 
-void PriorTest15(int param) {
+void PriorThread15(int param) {
   currentThread->setPriority(4);
   printf("(5)PT15:yielding\n");
   currentThread->Yield();
@@ -1237,7 +1245,7 @@ void PriorTest15(int param) {
 
 }
 
-void PriorTest16(int param) {
+void PriorThread16(int param) {
   currentThread->setPriority(2);
   printf("(6)PT16:yielding\n");
   currentThread->Yield();
@@ -1245,7 +1253,7 @@ void PriorTest16(int param) {
 
 }
 
-void PriorTest17(int param) {
+void PriorThread17(int param) {
   currentThread->setPriority(3);
   printf("(7)PT17:yielding\n");
   currentThread->Yield();
@@ -1253,7 +1261,7 @@ void PriorTest17(int param) {
 
 }
 
-void PriorTest18(int param) {
+void PriorThread18(int param) {
   currentThread->setPriority(8);
   printf("(8)PT18:yielding\n");
   currentThread->Yield();
@@ -1263,14 +1271,14 @@ void PriorTest18(int param) {
 
 void PriorTest4() {
   DEBUG('t', "Entering PriorTest4()");
-  Thread* t1 = new Thread("t1");
-  Thread* t2 = new Thread("t2");
-  Thread* t3 = new Thread("t3");
-  Thread* t4 = new Thread("t4");
-  Thread* t5 = new Thread("t5");
-  Thread* t6 = new Thread("t6");
-  Thread* t7 = new Thread("t7");
-  Thread* t8 = new Thread("t8");
+  t1 = new Thread("t1");
+  t2 = new Thread("t2");
+  t3 = new Thread("t3");
+  t4 = new Thread("t4");
+  t5 = new Thread("t5");
+  t6 = new Thread("t6");
+  t7 = new Thread("t7");
+  t8 = new Thread("t8");
   t1->Fork((VoidFunctionPtr) PriorThread11, 0);
   t2->Fork((VoidFunctionPtr) PriorThread12, 0);
   t3->Fork((VoidFunctionPtr) PriorThread13, 0);
