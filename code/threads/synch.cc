@@ -122,7 +122,7 @@ void Lock::Acquire() {
     ASSERT(held == 0);
 
     while (held) { 			// lock not available
-        queue->Append(currentThread);	// so go to sleep
+        queue->SortedInsert(currentThread, -(currentThread->getPriority()));    // so go to sleep
         currentThread->Sleep();
     }
     // consume its value

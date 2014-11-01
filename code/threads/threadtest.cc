@@ -1078,6 +1078,59 @@ void PriorTest4() {
   t8->Fork((VoidFunctionPtr) PriorThread18, 0);
 }
 
+////////////////////////////////////////////////////////////
+//Priority Extra Credit Test
+////////////////////////////////////////////////////////////
+void PriorThread19(Thread *joinee) {
+  printf("PT19:(1)joining\n");
+  joinee->Join();
+  printf("PT19:(7)joined\n");
+}
+
+void PriorThread20() {
+  printf("PT20:(2)yielding once\n");
+  currentThread->Yield();
+  printf("PT20:(4)yielding twice\n");
+  currentThread->Yield();
+  printf("PT20:(6)yielded\n");
+}
+
+void PriorThread21() {
+  printf("PT21:(3)yielding once\n");
+  currentThread->Yield();
+  printf("PT21:(5)yielding twice\n");
+  currentThread->Yield();
+  printf("PT21:(8)yielding thrice\n");
+  currentThread->Yield();
+  printf("PT21:(10)yielding forice\n");
+}
+
+void PriorThread22() {
+  printf("PT21:(9)yielding once\n");
+  currentThread->Yield();
+  printf("PT21:(11)yielding twice\n");
+  currentThread->Yield();
+  printf("PT21:(12)yielding thrice\n");
+  currentThread->Yield();
+  printf("PT21:(13)yielding forice\n");
+}
+
+void PriorTest5 () {
+  DEBUG('t', "Entering PriorTest4()");
+  Thread *t1 = new Thread("t1", 0);
+  Thread *t2 = new Thread("t2", 1);
+  Thread *t3 = new Thread("t3", 0);
+  Thread *t4 = new Thread("t4", 0);
+  t1->setPriority(9);
+  t2->setPriority(2);
+  t3->setPriority(7);
+  t4->setPriority(5);
+  t1->Fork((VoidFunctionPtr) PriorThread19, (int) t2);
+  t2->Fork((VoidFunctionPtr) PriorThread20, 0);
+  t3->Fork((VoidFunctionPtr) PriorThread21, 0);
+  t4->Fork((VoidFunctionPtr) PriorThread22, 0);
+}
+
 
 ////////////////////////////////////////////////////////////
 //Tester for part 5

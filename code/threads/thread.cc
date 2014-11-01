@@ -363,6 +363,24 @@ void Thread::Join() {
     //This means that the child's Finish() should Signal() it lock if meeting
     //this case.
     else {
+      List *threadQueue = NULL;
+      if (this->getPriority() < currentThread->getPriority()){
+        this->setPriority(currentThread->getPriority());
+        threadQueue = new List;
+        Thread *t;
+        while (true) {
+          t = (Thread *)scheduler->FindNextToRun();
+          if (t == NULL)
+            break;
+          threadQueue->Prepend(t);
+        }
+        while (true) {
+          t = (Thread *)threadQueue->Remove();
+          if (t == NULL)
+            break;
+          scheduler->ReadyToRun(t);
+        }
+      }
       this->cond->Wait(this->lock);
     }
 
