@@ -509,238 +509,74 @@ void CondTest9() {
 //Mailbox Tests
 //-----------------------------------//
 
-int m = 1;
-int m1 = 2;
 Mailbox * mailbox1 = NULL;
 
 void MailReceiver(int param) {
-
+   int message = 0;
+   mailbox1->Receive(&message);
+   printf("Message received: %d\n", message);
 }
 
 void MailSender(int param) {
-
-
-
+   mailbox1->Send(param);
+   printf("Message sent: %d\n", param);
 }
 
-//mtest1: first receive, then send
-void MailboxThread1(int param) {
-  printf("MT1:(1)receiving\n");
-  mailbox1->Receive(&m);
-  printf("MT1:(4)received\n");
-}
-
-void MailboxThread2(int param) {
-  printf("MT2:(2)sending\n");
-  mailbox1->Send(m);
-  printf("MT2:(3)sent\n");
-}
-
+//fitstly receive , then receive
 void MTest1(){
   DEBUG('t', "Entering MTest1");
 
   mailbox1 = new Mailbox("Mailbox1");
 
-  Thread *t = new Thread("mthread 1");
-  t->Fork(MailboxThread1, 0);
-  Thread *t1 = new Thread("mthread 2");
-  t1->Fork(MailboxThread2, 0);
+  Thread *t1 = new Thread("mthread 1");
+  Thread *t2 = new Thread("mthread 2");
+  Thread *t3 = new Thread("mthread 3");
+  Thread *t4 = new Thread("mthread 4");
+  Thread *t5 = new Thread("mthread 5");
+  Thread *t6 = new Thread("mthread 6");
+
+  t1->Fork(MailReceiver, 0);
+  t2->Fork(MailReceiver, 0);
+  t3->Fork(MailSender, 12);
+  t4->Fork(MailSender, 99);
+  t5->Fork(MailReceiver, 0);
+  t6->Fork(MailSender, 55);
 }
 
-//mtest2: first send then receive
-void MailboxThread3(int param){
-  printf("MT3:(1)sending\n");
-  mailbox1->Send(m);
-  printf("MT3:(4)sent\n");
-}
 
-void MailboxThread4(int param){
-  printf("MT4:(2)receiving\n");
-  mailbox1->Receive(&m);
-  printf("MT4:(3)received\n");
-}
-
+//only
 void MTest2(){
-  DEBUG('t', "Entering MTest2");
+  DEBUG('t', "Entering MTest1");
 
   mailbox1 = new Mailbox("Mailbox1");
-  Thread *t = new Thread("mthread 1");
-  t->Fork(MailboxThread3,0);
-  t = new Thread("mthread 2");
-  t->Fork(MailboxThread4,0);
+
+  Thread *t1 = new Thread("mthread 1");
+  Thread *t2 = new Thread("mthread 2");
+  Thread *t3 = new Thread("mthread 3");
+  Thread *t4 = new Thread("mthread 4");
+  Thread *t5 = new Thread("mthread 5");
+  Thread *t6 = new Thread("mthread 6");
+
+  t1->Fork(MailReceiver, 0);
+  t2->Fork(MailReceiver, 0);
+  t3->Fork(MailSender, 12);
+  t4->Fork(MailSender, 99);
+  t5->Fork(MailReceiver, 0);
+  t6->Fork(MailSender, 55);
 }
 
-//mtest3: send, send, receive, receive. Seperate threads
-void MailboxThread5(int param) {
-  printf("MT5:(1)sending first\n");
-  mailbox1->Send(m);
-  printf("MT5:(7)sent first.\n");
-}
 
-void MailboxThread6(int param) {
-  printf("MT6:(2)sending second\n");
-  mailbox1->Send(m1);
-  printf("MT6:(8)sent second\n");
-}
 
-void MailboxThread7(int param) {
-  printf("MT7:(3)receiving first\n");
-  mailbox1->Receive(&m);
-  printf("MT7:(4)received second\n");
 
-}
 
-void MailboxThread8(int param) {
-  printf("MT8:(5)receive second\n");
-  mailbox1->Receive(&m1);
-  printf("MT8:(6)received second\n");
-}
 
-void MTest3(){
-  DEBUG('t', "Entering MTest3");
 
-  mailbox1 = new Mailbox("Mailbox1");
-  Thread *t = new Thread("mthread 5");
-  t->Fork(MailboxThread5,0);
-  t = new Thread("mthread 6");
-  t->Fork(MailboxThread6,0);
-  t = new Thread("mthread 7");
-  t->Fork(MailboxThread7,0);
-  t = new Thread("mthread 8");
-  t->Fork(MailboxThread8,0);
-}
 
-//mtest4: receive, receive, send, send. Seperate threads
-void MailboxThread9(int param) {
-  printf("MT9:(1)receiving first\n");
-  mailbox1->Receive(&m);
-  printf("MT9:(7)received first.\n");
-}
 
-void MailboxThread10(int param) {
-  printf("MT10:(2)receiving second\n");
-  mailbox1->Receive(&m1);
-  printf("MT10:(8)received second\n");
-}
 
-void MailboxThread11(int param) {
-  printf("MT11:(3)sending first\n");
-  mailbox1->Send(m);
-  printf("MT11:(4)sent second\n");
 
-}
 
-void MailboxThread12(int param) {
-  printf("MT12:(5)sending second\n");
-  mailbox1->Send(m1);
-  printf("MT12:(6)sent second\n");
-}
 
-void MTest4(){
-  DEBUG('t', "Entering MTest4");
-
-  mailbox1 = new Mailbox("Mailbox1");
-  Thread *t = new Thread("mthread 9");
-  t->Fork(MailboxThread9,0);
-  t = new Thread("mthread 10");
-  t->Fork(MailboxThread10,0);
-  t = new Thread("mthread 11");
-  t->Fork(MailboxThread11,0);
-  t = new Thread("mthread 12");
-  t->Fork(MailboxThread12,0);
-}
-
-//MTest5: send
-void MailboxThread13(int param) {
-  printf("MT13:(1)sending\n");
-  mailbox1->Send(m);
-  printf("MT13:sent [UNEXPECTED]\n");
-}
-
-void MTest5() {
-  DEBUG('t', "Entering MTest5");
-
-  mailbox1 = new Mailbox("Mailbox1");
-  Thread *t = new Thread("mthread 13");
-  t->Fork(MailboxThread13,0);
-}
-
-//MTest6: receive
-void MailboxThread14(int param) {
-  printf("MT14:(1)receiving\n");
-  mailbox1->Receive(&m);
-  printf("MT14:received [UNEXPECTED]\n");
-}
-
-void MTest6() {
-  DEBUG('t', "Entering MTest6");
-
-  mailbox1 = new Mailbox("Mailbox1");
-  Thread *t = new Thread("mthread 14");
-  t->Fork(MailboxThread14,0);
-}
-
-//MTest7: send, send, receive
-void MailboxThread15(int param) {
-  printf("MT15:(1)sending\n");
-  mailbox1->Send(m);
-  printf("MT15:(5)sent\n");
-}
-
-void MailboxThread16(int param) {
-  printf("MT16:(2)send\n");
-  mailbox1->Send(m1);
-  printf("MT16:sent [UNEXPECTED]\n");
-}
-
-void MailboxThread17(int param) {
-  printf("MT17:(3)receiving\n");
-  mailbox1->Receive(&m);
-  printf("MT17:(4)received\n");
-}
-
-void MTest7(){
-  DEBUG('t', "Entering MTest7");
-
-  mailbox1 = new Mailbox("Mailbox1");
-  Thread *t = new Thread("mthread 15");
-  t->Fork(MailboxThread15,0);
-  t = new Thread("mthread 16");
-  t->Fork(MailboxThread16,0);
-  t = new Thread("mthread 17");
-  t->Fork(MailboxThread17,0);
-}
-
-//MTest8: receive, receive, send
-void MailboxThread18(int param) {
-  printf("MT18:(1)receiving\n");
-  mailbox1->Receive(&m);
-  printf("MT18:(5)received\n");
-}
-
-void MailboxThread19(int param) {
-  printf("MT19:(2)receiving\n");
-  mailbox1->Receive(&m1);
-  printf("MT19:received [UNEXPECTED]\n");
-}
-
-void MailboxThread20(int param) {
-  printf("MT20:(3)sending\n");
-  mailbox1->Send(m);
-  printf("MT20:(4)sent\n");
-}
-
-void MTest8(){
-  DEBUG('t', "Entering MTest8");
-
-  mailbox1 = new Mailbox("Mailbox1");
-  Thread *t = new Thread("mthread 18");
-  t->Fork(MailboxThread18,0);
-  t = new Thread("mthread 19");
-  t->Fork(MailboxThread19,0);
-  t = new Thread("mthread 20");
-  t->Fork(MailboxThread20,0);
-}
 
 //----------------------------------------------------------------------
 // Part3Test
@@ -1386,27 +1222,6 @@ ThreadTest()
     break;
     case 21:
       MTest1();
-    break;
-    case 22:
-      MTest2();
-    break;
-    case 23:
-      MTest3();
-    break;
-    case 24:
-      MTest4();
-    break;
-    case 25:
-      MTest5();
-    break;
-    case 26:
-      MTest6();
-    break;
-    case 27:
-      MTest7();
-    break;
-    case 28:
-      MTest8();
     break;
     case 31:
       Part3Test1();

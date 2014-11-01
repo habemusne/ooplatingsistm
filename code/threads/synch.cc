@@ -230,23 +230,28 @@ Mailbox::~Mailbox(){
 void Mailbox::Send(int message){
   locker->Acquire();
 
-  if(data->IsEmpty() == false)
-    receive->Wait(locker);
+  //if buffer is not empty, wait
+  if(!data->IsEmpty())
+    send->Wait(locker); 
   
   data->Append((void *)message);
-  send->Signal(locker);
+  receive->Signal(locker);
+
   locker->Release();
 }
 
 void Mailbox::Receive(int * message){
   locker->Acquire();
   
+  //if no data, wait to receive until there is data
   if(data->IsEmpty())
-    send->Wait(locker);
+    receive->Wait(locker);
 
   int value = (int)data->Remove();
   *message = value;
-  receive->Signal(locker);
+
+  send->Signal(locker);
+
   locker->Release();
 }
 
