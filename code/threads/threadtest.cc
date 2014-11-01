@@ -513,6 +513,16 @@ int m = 1;
 int m1 = 2;
 Mailbox * mailbox1 = NULL;
 
+void MailReceiver(int param) {
+
+}
+
+void MailSender(int param) {
+
+
+
+}
+
 //mtest1: first receive, then send
 void MailboxThread1(int param) {
   printf("MT1:(1)receiving\n");
