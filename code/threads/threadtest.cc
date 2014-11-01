@@ -600,28 +600,14 @@ void MTest5(){
 
   Thread *t1 = new Thread("mthread 1");
   Thread *t2 = new Thread("mthread 2");
-  Thread *t3 = new Thread("mthread 3");
-  Thread *t4 = new Thread("mthread 4");
   Thread *t5 = new Thread("mthread 5");
   Thread *t6 = new Thread("mthread 6");
 
   t1->Fork(MailSender, 10);
   t2->Fork(MailSender, 110);
-  t3->Fork(MailSender, 12);
-  t4->Fork(MailSender, 99);
   t5->Fork(MailReceiver, 0);
   t6->Fork(MailReceiver, 0);
 }
-
-
-
-
-
-
-
-
-
-
 
 //----------------------------------------------------------------------
 // Part3Test
@@ -1222,116 +1208,115 @@ ThreadTest()
   switch (testnum) {
     case 0:
       ThreadTest1();
-    break;
+      break;
     case 1:
       LockTest1(); //(1234)
-    break;
+      break;
     case 2:
       LockTest2(); //(12)
-    break;
+      break;
     case 3:
       LockTest3(); //(1)
-    break;
+      break;
     case 4:
       LockTest4(); //(12)
-    break;
+      break;
     case 5:
       LockTest5(); //(123)
-    break;
+      break;
     case 11:
       CondTest1(); //(12345678)
-    break;
+      break;
     case 12:
       CondTest2(); //(123456789 10)
-    break;
+      break;
     case 13:
       CondTest3(); //(1)
-    break;
+      break;
     case 14:
       CondTest4(); //(123456789 10 11 12)
-    break;
+      break;
     case 15:
       CondTest5(); //(123456789 10 11 12 13 14)
-    break;
+      break;
     case 16:
       CondTest6(); //(12345678)
-    break;
+      break;
     case 17:
       CondTest7(); //(1234)
-    break;
+      break;
     case 18:
       CondTest8(); //(123)
-    break;
+      break;
     case 19:
       CondTest9(); //(123)
-    break;
+      break;
     case 21:
       MTest1();
-    break;
+      break;
     case 22:
       MTest2();
-    break;
+      break;
     case 23:
       MTest3();
-    break;
+      break;
     case 24:
       MTest4();
-    break;
+      break;
     case 25:
       MTest5();
-    break;
-
+      break;
     case 31:
       Part3Test1();
-    break;
+      break;
     case 32:
       Part3Test2(); //(1234567)
-    break;
+      break;
     case 33:
       Part3Test3(); //(12345678)
-    break;
+      break;
     case 34:
       Part3Test4(); //(123456789 10)
-    break;
+      break;
     case 35:
       Part3Test5(); //(1)
-    break;
+      break;
     case 36:
       Part3Test6(); //(1)
-    break;
+      break;
     case 37:
       Part3Test7(); //(1)
-    break;
+      break;
     case 38:
       Part3Test8(); //(12345)
-    break;
+      break;
     case 41:
       PriorTest1();
-    break;
+      break;
     case 42:
       PriorTest2();
-    break;
+      break;
     case 44:
       PriorTest4();
-    break;
+      break;
     case 51:
       Part5Test1();
-    break;
+      break;
     case 52:
       Part5Test2();
-    break;
+      break;
     case 53:
       Part5Test3();
-    break;
+      break;
     case 54:
       Part5Test4();
-    break;
+      break;
     case 55:
       Part5Test5();
-    break;
+      break;
 
     default:
       printf("No test specified.\n");
-    break;
+      break;
   }
 }

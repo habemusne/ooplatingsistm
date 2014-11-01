@@ -107,11 +107,9 @@ Lock::Lock(char* debugName) {
     this->lockHold = NULL;
 }
 Lock::~Lock() {
-
     //a lock should not be deleted if a thread is holding it
     ASSERT(this->held == 0 );
-    //ASSERT(this->queue->IsEmpty());
-    //delete this->name;
+    //ASSERT(!this->queue->IsEmpty());
     delete this->queue;
     this->name = NULL;
     this->queue = NULL;
@@ -173,8 +171,8 @@ void Condition::Wait(Lock* conditionLock) {
   ASSERT(conditionLock->isHeldByCurrentThread());
 
   IntStatus oldLevel = interrupt->SetLevel(IntOff);
-  conditionLock->Release();
   this->queue->Append((void *) currentThread);
+  conditionLock->Release();
   currentThread->Sleep();
   conditionLock->Acquire();
   (void) interrupt->SetLevel(oldLevel);
@@ -228,10 +226,13 @@ void Mailbox::Send(int message){
   locker->Acquire();
 
   //if buffer is not empty, wait
-  if(!data->IsEmpty())
+  if(!data->IsEmpty()) { 
     send->Wait(locker); 
-  
+  }
+
+  //save the value to the buffer
   data->Append((void *)message);
+
   receive->Signal(locker);
 
   locker->Release();
@@ -241,12 +242,14 @@ void Mailbox::Receive(int * message){
   locker->Acquire();
   
   //if no data, wait to receive until there is data
-  if(data->IsEmpty())
+  if(data->IsEmpty()) {
     receive->Wait(locker);
+  }
 
+  //save and remove the buffer
   int value = (int)data->Remove();
   *message = value;
-
+  
   send->Signal(locker);
 
   locker->Release();
