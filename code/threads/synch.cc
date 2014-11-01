@@ -249,3 +249,102 @@ void Mailbox::Receive(int * message){
   receive->Signal(locker);
   locker->Release();
 }
+
+Whale::Whale(char *debugName)
+{
+   this->name = debugName;
+   this->maleAvailable = new Condition("male");
+   this->femaleAvailable = new Condition("female");
+   this->matchMaker = new Condition("matcher");
+   this->lock = new Lock("lock");
+   this->maleQ = new List;
+   this->femaleQ = new List;
+   this->makerQ = new List;
+}
+
+Whale::~Whale()
+{
+   delete this->name;
+   delete this->maleAvailable;
+   delete this->femaleAvailable;
+   delete this->matchMaker;
+   delete this->lock;
+}
+
+void Whale::Male()
+{
+   lock->Acquire();
+   maleQ->Append((void *)"male");
+
+   if(femaleQ->IsEmpty() || makerQ->IsEmpty())
+   {
+      printf("@@@@Lock male\n");
+      maleAvailable->Wait(lock);
+   }
+   else
+   {
+      printf("^^^^Male comes, match successfully!\n");
+      makerQ->Remove();
+      maleQ->Remove();
+      femaleQ->Remove();
+
+      femaleAvailable->Signal(lock);
+      matchMaker->Signal(lock);
+   }
+
+   printf("****Release male\n");
+   lock->Release();
+}
+
+void Whale::Female()
+{
+   lock->Acquire();
+   
+   femaleQ->Append((void *)"female");
+
+   if(maleQ->IsEmpty() || makerQ->IsEmpty())
+   {
+      printf("@@@@Lock female\n");
+      femaleAvailable->Wait(lock);
+   }
+   else
+   {
+      printf("^^^^Female comes, match successfully!\n");
+      makerQ->Remove();
+      maleQ->Remove();
+      femaleQ->Remove();
+
+      maleAvailable->Signal(lock);
+      matchMaker->Signal(lock);
+   }
+
+   printf("****Release female\n");
+   lock->Release();
+}
+
+void Whale::Matchmaker()
+{
+   lock->Acquire();
+   
+   makerQ->Append((void *)"maker");
+
+   if(femaleQ->IsEmpty() || maleQ->IsEmpty())
+   {
+      printf("@@@@Lock maker\n");
+      matchMaker->Wait(lock);
+   }
+   else
+   {
+      printf("^^^^Matchmaker comes, match successfully!\n");
+      makerQ->Remove();
+      maleQ->Remove();
+      femaleQ->Remove();
+
+      femaleAvailable->Signal(lock);
+      maleAvailable->Signal(lock);
+   }
+
+   printf("****Release maker\n");
+   lock->Release();
+}
+

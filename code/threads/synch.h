@@ -162,4 +162,30 @@ private:
   Condition *send;
   Condition *receive;
 };
+
+//part 5 Whale class
+class Whale {
+public:
+  Whale(char* debugName);
+  ~Whale();
+  char* getName(){
+    return (name);
+  }
+
+  void Male();
+  void Female();
+  void Matchmaker();
+
+private:
+  char *name;
+  Condition *maleAvailable;
+  Condition *femaleAvailable;
+  Condition *matchMaker;
+  Lock *lock;
+  List *maleQ;
+  List *femaleQ;
+  List *makerQ;
+};
+
+
 #endif // SYNCH_H
