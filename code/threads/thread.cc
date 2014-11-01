@@ -327,6 +327,10 @@ void Thread::Join() {
     ASSERT(this->forkIsCalled == true);
 
     //From project1 slide: Only ONE THREAD can call Join on another
+
+    //From write-up: Join is not called more than once on a thread
+    ASSERT(this->joinIsCalled == false);
+
     //So, check if parentThread is NULL. If it is, then another thread has
     //already called Join on this thread, which means that this thread will
     //have two parents
@@ -334,9 +338,6 @@ void Thread::Join() {
 
     //From project1 slide: A thread cannot call Join on itself
     ASSERT(this != currentThread);
-
-    //From write-up: Join is not called more than once on a thread
-    ASSERT(this->joinIsCalled == false);
 
     this->joinIsCalled = true;
     this->parentThread = currentThread;

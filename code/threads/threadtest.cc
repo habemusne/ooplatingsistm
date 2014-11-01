@@ -956,7 +956,7 @@ void Part3Thread11(Thread *joinee) {
 void Part3Test7() {
   DEBUG('t', "Entering Part3Test7()");
   Thread *joiner = new Thread("t10",0);
-  Thread *joinee = new Thread("t11",0);
+  Thread *joinee = new Thread("t11",1);
   joiner->Fork((VoidFunctionPtr) Part3Thread10, (int) joinee);
   printf("Forked off the joiner and joiner threads.\n");
 }
@@ -1028,9 +1028,7 @@ void PriorThread2(int param) {
 void PriorThread3(int param) {
   printf("(5)PT3:acquiring\n");
   priorLock->Acquire();
-  printf("(6)PT3:changing priority\n");
-  testingThread1->setPriority(10);
-  testingThread2->setPriority(20);
+  printf("(6)PT3:do nothing haha\n");
   printf("(7)PT3:singaling once\n");
   priorCond->Signal(priorLock);
   printf("(8)PT3:singaling second\n");
@@ -1050,6 +1048,8 @@ void PriorTest1() {
   testingThread1->Fork((VoidFunctionPtr) PriorThread1, 0);
   testingThread2->Fork((VoidFunctionPtr) PriorThread2, 0);
   testingThread3->Fork((VoidFunctionPtr) PriorThread3, 0);
+  testingThread1->setPriority(10);
+  testingThread2->setPriority(20);
 }
 
 //test2: two waits. both set to same priority. signal, then signal
@@ -1077,8 +1077,6 @@ void PriorThread6(int param) {
   printf("(5)PT6:acquiring\n");
   priorLock->Acquire();
   printf("(6)PT6:setting priority\n");
-  testingThread1->setPriority(10);
-  testingThread2->setPriority(10);
   printf("(7)PT6:signaling first\n");
   priorCond->Signal(priorLock);
   printf("(8)PT6:signaling second\n");
@@ -1098,6 +1096,8 @@ void PriorTest2() {
   testingThread1->Fork((VoidFunctionPtr) PriorThread4, 0);
   testingThread2->Fork((VoidFunctionPtr) PriorThread5, 0);
   testingThread3->Fork((VoidFunctionPtr) PriorThread6, 0);
+  testingThread1->setPriority(10);
+  testingThread2->setPriority(10);
 }
 
 //test3: three threads wait. The fourth thread sets the second's 
