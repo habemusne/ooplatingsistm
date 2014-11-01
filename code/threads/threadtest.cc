@@ -985,7 +985,7 @@ void Part3Test8() {
   Thread *joinee = new Thread("t13",1);
   joiner->Fork((VoidFunctionPtr) Part3Thread12, (int) joinee);
   joinee->Fork((VoidFunctionPtr) Part3Thread13, 0);
-  printf("Forked off the joiner and joiner threads.\n");
+  printf("Forked off the joiner and joiner thjoiner threads.\n");
 }
 
 
@@ -1004,31 +1004,24 @@ Thread *testingThread6 = NULL;
 Thread *testingThread7 = NULL;
 Thread *testingThread8 = NULL;
 
-//test1: put two threads to yield. Put the first with low priority, second with higher
+//test1: put three threads to yield. Put the first with high priority, second with lower, third with highest
 void PriorThread1(int param) {
-  printf("(1)PT1:yielding\n");
+  printf("(2)PT1:yielding\n");
   currentThread->Yield();
   printf("(4)PT1:yielded\n");
 }
 
 void PriorThread2(int param) {
-  printf("(1)PT2:yielding\n");
+  printf("(5)PT2:yielding\n");
   currentThread->Yield();
-  printf("(3)PT2:yielded\n");
+  printf("(6)PT2:yielded\n");
 }
 
-// void PriorThread3(int param) {
-//   printf("(5)PT3:acquiring\n");
-//   priorLock->Acquire();
-//   printf("(6)PT3:do nothing haha\n");
-//   printf("(7)PT3:singaling once\n");
-//   priorCond->Signal(priorLock);
-//   printf("(8)PT3:singaling second\n");
-//   priorCond->Signal(priorLock);
-//   printf("(9)PT3:releasing\n");
-//   priorLock->Release();
-//   printf("(10)PT3:released\n");
-// }
+void PriorThread3(int param) {
+  printf("(1)PT3:yielding\n");
+  currentThread->Yield();
+  printf("(3)PT3:yielded\n");
+}
 
 void PriorTest1() {
   DEBUG('t', "Entering PriorTest1()");
@@ -1036,27 +1029,30 @@ void PriorTest1() {
   priorLock = new Lock("lock");
   testingThread1 = new Thread("t1");
   testingThread2 = new Thread("t2");
+  testingThread3 = new Thread("t3");
+  testingThread1->setPriority(1);
+  testingThread2->setPriority(-1);
+  testingThread3->setPriority(2);
   testingThread1->Fork((VoidFunctionPtr) PriorThread1, 0);
   testingThread2->Fork((VoidFunctionPtr) PriorThread2, 0);
-  testingThread1->setPriority(10);
-  testingThread2->setPriority(20);
+  testingThread3->Fork((VoidFunctionPtr) PriorThread3, 0);
 }
 
 //test2: two yield. both set to same priority
 void PriorThread4(int param) {
-  printf("(1)PT4:yielding\n");
+  printf("(2)PT4:yielding\n");
   currentThread->Yield();
   printf("(5)PT4:yielded\n");
 }
 
 void PriorThread5(int param) {
-  printf("(2)PT5:yielding\n");
+  printf("(1)PT5:yielding\n");
   currentThread->Yield();
-  printf("(4)PT5:yielded\n");
+  printf("(3)PT5:yielded\n");
 }
 
 void PriorThread6(int param) {
-  printf("(3)PT6:yielding\n");
+  printf("(4)PT6:yielding\n");
   currentThread->Yield();
   printf("(6)PT6:yielded\n");
 }
@@ -1068,56 +1064,12 @@ void PriorTest2() {
   testingThread1 = new Thread("t1");
   testingThread2 = new Thread("t2");
   testingThread3 = new Thread("t3");
+  testingThread1->setPriority(1);
+  testingThread2->setPriority(2);
+  testingThread3->setPriority(1);
   testingThread1->Fork((VoidFunctionPtr) PriorThread4, 0);
   testingThread2->Fork((VoidFunctionPtr) PriorThread5, 0);
   testingThread3->Fork((VoidFunctionPtr) PriorThread6, 0);
-  testingThread1->setPriority(10);
-  testingThread2->setPriority(20);
-  testingThread3->setPriority(10);
-}
-
-//test3: When a thread is added to the ready list that is the 
-//       same priority as the currently running thread,  the 
-//       thread should insert after the threads at that same priority
-//
-//thread2 is pre-set a priority 20
-//thread1 sets itself a priority 10
-//thread1 yield
-//thread2 sets thread3 a priority of 20 (same as current thread)
-//thread2 yield
-//thread3 yield
-//Then the order of running afterwards should be: 2,3,1
-void PriorThread7(int param) {
-  currentThread->setPriority(10);
-  printf("(3)PT6:yielding\n");
-  currentThread->Yield();
-  printf("(6)PT6:yielded\n");
-}
-
-void PriorThread8(int param) {
-  testingThread3->setPriority(20);
-  printf("(3)PT6:yielding\n");
-  currentThread->Yield();
-  printf("(6)PT6:yielded\n");
-}
-
-void PriorThread9(int param) {
-  printf("(3)PT6:yielding\n");
-  currentThread->Yield();
-  printf("(6)PT6:yielded\n");
-}
-
-void PriorTest3() {
-  DEBUG('t', "Entering PriorTest3()");
-  priorCond = new Condition("cond");
-  priorLock = new Lock("lock");
-  testingThread1 = new Thread("t1");
-  testingThread2 = new Thread("t2");
-  testingThread3 = new Thread("t3");
-  testingThread1->Fork((VoidFunctionPtr) PriorThread7, 0);
-  testingThread2->Fork((VoidFunctionPtr) PriorThread8, 0);
-  testingThread3->Fork((VoidFunctionPtr) PriorThread9, 0);
-  testingThread2->setPriority(20);
 }
 
 //test4:
@@ -1231,14 +1183,6 @@ void PriorTest4() {
   Thread *t6 = new Thread("t6");
   Thread *t7 = new Thread("t7");
   Thread *t8 = new Thread("t8");
-  t1->Fork((VoidFunctionPtr) PriorThread11, 0);
-  t2->Fork((VoidFunctionPtr) PriorThread12, 0);
-  t3->Fork((VoidFunctionPtr) PriorThread13, 0);
-  t4->Fork((VoidFunctionPtr) PriorThread14, 0);
-  t5->Fork((VoidFunctionPtr) PriorThread15, 0);
-  t6->Fork((VoidFunctionPtr) PriorThread16, 0);
-  t7->Fork((VoidFunctionPtr) PriorThread17, 0);
-  t8->Fork((VoidFunctionPtr) PriorThread18, 0);
   t1->setPriority(100);
   t2->setPriority(100);
   t3->setPriority(100);
@@ -1247,6 +1191,14 @@ void PriorTest4() {
   t6->setPriority(100);
   t7->setPriority(100);
   t8->setPriority(100);
+  t1->Fork((VoidFunctionPtr) PriorThread11, 0);
+  t2->Fork((VoidFunctionPtr) PriorThread12, 0);
+  t3->Fork((VoidFunctionPtr) PriorThread13, 0);
+  t4->Fork((VoidFunctionPtr) PriorThread14, 0);
+  t5->Fork((VoidFunctionPtr) PriorThread15, 0);
+  t6->Fork((VoidFunctionPtr) PriorThread16, 0);
+  t7->Fork((VoidFunctionPtr) PriorThread17, 0);
+  t8->Fork((VoidFunctionPtr) PriorThread18, 0);
 }
 
 
@@ -1475,9 +1427,6 @@ ThreadTest()
     break;
     case 42:
       PriorTest2();
-    break;
-    case 43:
-      PriorTest3();
     break;
     case 44:
       PriorTest4();

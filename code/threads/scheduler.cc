@@ -57,7 +57,8 @@ Scheduler::ReadyToRun (Thread *thread)
 
     thread->setStatus(READY);
     //readyList->Append((void *)thread);
-    readyList->SortedInsert((void *)thread, thread->getPriority());
+    printf("thread %s has priority %d\n", thread->getName(), thread->getPriority());
+    readyList->SortedInsert((void *)thread, -(thread->getPriority()));
 }
 
 //----------------------------------------------------------------------

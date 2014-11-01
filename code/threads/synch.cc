@@ -124,13 +124,13 @@ void Lock::Acquire() {
     //a thread cannot acquire a lock that it already has
     ASSERT(held == 0);
 
-    this->lockHold = currentThread;
     while (held) { 			// lock not available
         queue->Append(currentThread);	// so go to sleep
         currentThread->Sleep();
     }
     // consume its value
     held = 1;
+    this->lockHold = currentThread;
 
     (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
 }
@@ -245,7 +245,7 @@ void Mailbox::Receive(int * message){
     send->Wait(locker);
 
   int value = (int)data->Remove();
-  printf("*********************Received value: %d\n", value);
+  *message = value;
   receive->Signal(locker);
   locker->Release();
 }

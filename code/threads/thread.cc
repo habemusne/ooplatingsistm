@@ -254,8 +254,11 @@ Thread::Yield ()
 
     nextThread = scheduler->FindNextToRun();
     if (nextThread != NULL) {
+        printf("thread.cc: nextThread != NULL\n");
         scheduler->ReadyToRun(this);
         scheduler->Run(nextThread);
+    } else {
+      printf("Thread.cc: nextThread is NULL\n");
     }
     (void) interrupt->SetLevel(oldLevel);
 }
@@ -371,11 +374,11 @@ void Thread::Join() {
 
 void Thread::setPriority(int newPriority) {
   //PROBLEM: is this correct?
-  this->priority = -newPriority;
+  this->priority = newPriority;
 }
 
 int Thread::getPriority() {
-  return -(this->priority);
+  return this->priority;
 }
 
 //----------------------------------------------------------------------
