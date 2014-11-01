@@ -108,7 +108,6 @@ Lock::Lock(char* debugName) {
 }
 Lock::~Lock() {
 
-    printf("lock:this->held = %d\n", this->held);
     //a lock should not be deleted if a thread is holding it
     ASSERT(this->held == 0 );
     //ASSERT(this->queue->IsEmpty());
@@ -163,8 +162,6 @@ Condition::Condition(char* debugName) {
 Condition::~Condition() {
   //should not have threads waiting on queue.
   ASSERT(queue->IsEmpty());
-  printf(this->name);
-  printf("\n");
   //delete this->name;
   delete this->queue;
   this->name = NULL;
@@ -283,12 +280,10 @@ void Whale::Male()
 
    if(femaleQ->IsEmpty() || makerQ->IsEmpty())
    {
-      printf("@@@@Lock male\n");
       maleAvailable->Wait(lock);
    }
    else
    {
-      printf("^^^^Male comes, match successfully!\n");
       makerQ->Remove();
       maleQ->Remove();
       femaleQ->Remove();
@@ -297,7 +292,6 @@ void Whale::Male()
       matchMaker->Signal(lock);
    }
 
-   printf("****Release male\n");
    lock->Release();
 }
 
@@ -309,12 +303,10 @@ void Whale::Female()
 
    if(maleQ->IsEmpty() || makerQ->IsEmpty())
    {
-      printf("@@@@Lock female\n");
       femaleAvailable->Wait(lock);
    }
    else
    {
-      printf("^^^^Female comes, match successfully!\n");
       makerQ->Remove();
       maleQ->Remove();
       femaleQ->Remove();
@@ -323,7 +315,6 @@ void Whale::Female()
       matchMaker->Signal(lock);
    }
 
-   printf("****Release female\n");
    lock->Release();
 }
 
@@ -335,12 +326,10 @@ void Whale::Matchmaker()
 
    if(femaleQ->IsEmpty() || maleQ->IsEmpty())
    {
-      printf("@@@@Lock maker\n");
       matchMaker->Wait(lock);
    }
    else
    {
-      printf("^^^^Matchmaker comes, match successfully!\n");
       makerQ->Remove();
       maleQ->Remove();
       femaleQ->Remove();
@@ -349,7 +338,6 @@ void Whale::Matchmaker()
       maleAvailable->Signal(lock);
    }
 
-   printf("****Release maker\n");
    lock->Release();
 }
 

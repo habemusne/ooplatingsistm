@@ -181,18 +181,14 @@ List::SortedInsert(void *item, int sortKey)
     ListElement *element = new ListElement(item, sortKey);
     ListElement *ptr;		// keep track
 
-    printf("list.cc: sortKey = %d\n", sortKey);
     if (IsEmpty()) {	// if list is empty, put
-        printf("list.cc: empty\n");
         first = element;
         last = element;
     } else if (sortKey < first->key) {
         // item goes on front of list
-        printf("list.cc: sortKey < first->key\n");
         element->next = first;
         first = element;
     } else {		// look for first elt in list bigger than item
-        printf("list.cc: sortKey >= first->key\n");
         for (ptr = first; ptr->next != NULL; ptr = ptr->next) {
             if (sortKey < ptr->next->key) {
                 element->next = ptr->next;

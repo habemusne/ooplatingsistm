@@ -543,9 +543,36 @@ void MTest1(){
   t6->Fork(MailSender, 55);
 }
 
-
-//only
 void MTest2(){
+  DEBUG('t', "Entering MTest1");
+
+  mailbox1 = new Mailbox("Mailbox1");
+
+  Thread *t1 = new Thread("mthread 1");
+  Thread *t2 = new Thread("mthread 2");
+  Thread *t3 = new Thread("mthread 3");
+
+  t1->Fork(MailReceiver, 0);
+  t2->Fork(MailReceiver, 0);
+  t3->Fork(MailSender, 12);
+}
+
+
+void MTest3(){
+  DEBUG('t', "Entering MTest1");
+
+  mailbox1 = new Mailbox("Mailbox1");
+
+  Thread *t1 = new Thread("mthread 1");
+  Thread *t2 = new Thread("mthread 2");
+  Thread *t3 = new Thread("mthread 3");
+
+  t1->Fork(MailReceiver, 0);
+  t2->Fork(MailSender, 44);
+  t3->Fork(MailSender, 12);
+}
+
+void MTest4(){
   DEBUG('t', "Entering MTest1");
 
   mailbox1 = new Mailbox("Mailbox1");
@@ -558,15 +585,33 @@ void MTest2(){
   Thread *t6 = new Thread("mthread 6");
 
   t1->Fork(MailReceiver, 0);
-  t2->Fork(MailReceiver, 0);
+  t2->Fork(MailSender, 110);
   t3->Fork(MailSender, 12);
   t4->Fork(MailSender, 99);
   t5->Fork(MailReceiver, 0);
-  t6->Fork(MailSender, 55);
+  t6->Fork(MailReceiver, 0);
 }
 
 
+void MTest5(){
+  DEBUG('t', "Entering MTest1");
 
+  mailbox1 = new Mailbox("Mailbox1");
+
+  Thread *t1 = new Thread("mthread 1");
+  Thread *t2 = new Thread("mthread 2");
+  Thread *t3 = new Thread("mthread 3");
+  Thread *t4 = new Thread("mthread 4");
+  Thread *t5 = new Thread("mthread 5");
+  Thread *t6 = new Thread("mthread 6");
+
+  t1->Fork(MailSender, 10);
+  t2->Fork(MailSender, 110);
+  t3->Fork(MailSender, 12);
+  t4->Fork(MailSender, 99);
+  t5->Fork(MailReceiver, 0);
+  t6->Fork(MailReceiver, 0);
+}
 
 
 
@@ -1223,6 +1268,19 @@ ThreadTest()
     case 21:
       MTest1();
     break;
+    case 22:
+      MTest2();
+    break;
+    case 23:
+      MTest3();
+    break;
+    case 24:
+      MTest4();
+    break;
+    case 25:
+      MTest5();
+    break;
+
     case 31:
       Part3Test1();
     break;
