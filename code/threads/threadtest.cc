@@ -1443,94 +1443,106 @@ ThreadTest()
     case 5:
       LockTest5(); //(123)
     break;
-    case 10:
+    case 11:
       CondTest1(); //(12345678)
     break;
-    case 11:
+    case 12:
       CondTest2(); //(123456789 10)
     break;
-    case 12:
+    case 13:
       CondTest3(); //(1)
     break;
-    case 13:
+    case 14:
       CondTest4(); //(123456789 10 11 12)
     break;
-    case 14:
+    case 15:
       CondTest5(); //(123456789 10 11 12 13 14)
     break;
-    case 15:
+    case 16:
       CondTest6(); //(12345678)
     break;
-    case 16:
+    case 17:
       CondTest7(); //(1234)
     break;
-    case 17:
+    case 18:
       CondTest8(); //(123)
     break;
-    case 18:
+    case 19:
       CondTest9(); //(123)
     break;
-    case 20:
+    case 21:
       MTest1();
     break;
-    case 21:
+    case 22:
       MTest2();
     break;
-    case 22:
+    case 23:
       MTest3();
     break;
-    case 23:
+    case 24:
       MTest4();
     break;
-    case 24:
+    case 25:
       MTest5();
     break;
-    case 25:
+    case 26:
       MTest6();
     break;
-    case 26:
+    case 27:
       MTest7();
     break;
-    case 27:
+    case 28:
       MTest8();
     break;
-    case 30:
+    case 31:
       Part3Test1();
     break;
-    case 31:
+    case 32:
       Part3Test2(); //(1234567)
     break;
-    case 32:
+    case 33:
       Part3Test3(); //(12345678)
     break;
-    case 33:
+    case 34:
       Part3Test4(); //(123456789 10)
     break;
-    case 34:
+    case 35:
       Part3Test5(); //(1)
     break;
-    case 35:
+    case 36:
       Part3Test6(); //(1)
     break;
-    case 36:
+    case 37:
       Part3Test7(); //(1)
     break;
-    case 37:
+    case 38:
       Part3Test8(); //(12345)
     break;
-    case 50:
-      Part5Test1();
+    case 41:
+      PriorTest1();
+    break;
+    case 42:
+      PriorTest2();
+    break;
+    case 43:
+      PriorTest3();
+    break;
+    case 44:
+      PriorTest4();
     break;
     case 51:
-      Part5Test2();
+      Part5Test1();
     break;
     case 52:
-      Part5Test3();
+      Part5Test2();
     break;
     case 53:
-      Part5Test4();
+      Part5Test3();
     break;
     case 54:
+      Part5Test4();
+    break;
+    case 55:
       Part5Test5();
     break;
 
