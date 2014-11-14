@@ -3,6 +3,14 @@
 
 MemoryManager* memManager = NULL;
 
+MemoryManager*
+MemoryManager::GetInstance()
+{
+  if(!manager)
+    manager = new MemoryManager(NumPhysPages);
+  return manager;
+}
+
 MemoryManager::MemoryManager(int numPages)
 {
   pages = new BitMap(numPages);

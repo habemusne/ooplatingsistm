@@ -17,7 +17,7 @@ class Record
 class MemoryManager
 {
  public:
-    MemoryManager(int numPages);
+    static MemoryManager* GetInstance();
     ~MemoryManager();
     int AllocPage();
     void FreePage(int physPageNum);
@@ -26,9 +26,11 @@ class MemoryManager
     int replaceIndex;
     int totalPages;
  private:
+    MemoryManager(int numPages);
     BitMap* pages;
     int usedPages;
     Lock* mmLock;
+    static MemoryManager* manager;
 };
 
 #endif
