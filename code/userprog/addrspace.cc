@@ -18,6 +18,7 @@
 #include "copyright.h"
 #include "system.h"
 #include "addrspace.h"
+#include "memorymanager.h"
 #include "noff.h"
 #ifdef HOST_SPARC
 #include <strings.h>
@@ -85,11 +86,11 @@ AddrSpace::AddrSpace(OpenFile *executable)
 
     DEBUG('a', "Initializing address space, num pages %d, size %d\n",
           numPages, size);
-// first, set up the translation
+    // first, set up the translation
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++) {
-        pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-        pageTable[i].physicalPage = i;
+        pageTable[i].virtualPage = i;	//sets virtual page
+        pageTable[i].physicalPage = memoryManager->AllocPage();  //physical
         pageTable[i].valid = TRUE;
         pageTable[i].use = FALSE;
         pageTable[i].dirty = FALSE;
@@ -98,11 +99,98 @@ AddrSpace::AddrSpace(OpenFile *executable)
         // pages to be read-only
     }
 
-// zero out the entire address space, to zero the unitialized data segment
-// and the stack segment
-    bzero(machine->mainMemory, size);
+    //loop through each virtual page and (2) zero out that page.
+    //bzero(machine->mainMemory, size);
+    for (i = 0; i < numPages; i++) {
+        //get a pointer to the physical page by mapping the virtual page
+        //to the physical page
+	//zero the physical page using the pointer to it;
+	memset(&machine->mainMemory[pageTable[i].physicalPage * PageSize], 0, PageSize);
+   }
 
-// then, copy in the code and data segments into memory
+   // then, copy in the code and data segments into memory
+   unsigned int pageNum = 0;
+   unsigned int file_off = noffH.code.inFileAddr;
+   unsigned int virt_addr = noffH.code.virtualAddr;
+   char *phys_addr;
+   
+
+   if(noffH.code.size > 0)
+   {
+       //if the section start address is not on a page boundary
+       if(virt_addr % PageSize != 0)
+       {
+          phys_addr = &machine->mainMemory[pageTable[virt_addr].physicalPage];
+          executable->ReadAt(phys_addr, PageSize - virt_addr % PageSize, file_off);
+	  file_off += PageSize - virt_addr % PageSize;
+          virt_addr += PageSize - virt_addr % PageSize;
+       }
+
+       while (virt_addr + pageNum * PageSize <= noffH.code.virtualAddr + (unsigned int)noffH.code.size) {
+          //determine current offset into executable file
+          file_off += pageNum * PageSize;
+
+          //determine the virtual address that the code gets loaded at;
+          virt_addr += pageNum * PageSize;
+
+          //convert the virt_addr to a physical address using your page table;
+          phys_addr = &machine->mainMemory[pageTable[virt_addr].physicalPage];
+
+          executable->ReadAt(phys_addr, PageSize, file_off);
+
+          pageNum++;  //next page
+       }
+
+       //if the end of the segment is not a full page, load the remaining fragment
+       if(virt_addr < noffH.code.virtualAddr + (unsigned int)noffH.code.size)
+       {
+          phys_addr = &machine->mainMemory[pageTable[virt_addr].physicalPage];
+          executable->ReadAt(phys_addr, virt_addr % PageSize, file_off);
+       }
+    }
+
+    if(noffH.code.size > 0)
+    {
+       pageNum = 0;
+       file_off = noffH.initData.inFileAddr;
+       virt_addr = noffH.initData.virtualAddr;
+
+       //if the section start address is not on a page boundary
+       if(virt_addr % PageSize != 0)
+       {
+          phys_addr = &machine->mainMemory[pageTable[virt_addr].physicalPage];
+          executable->ReadAt(phys_addr, PageSize - virt_addr % PageSize, file_off);
+	  file_off += PageSize - virt_addr % PageSize;
+          virt_addr += PageSize - virt_addr % PageSize;
+       }
+
+       while (virt_addr + pageNum * PageSize <= noffH.initData.virtualAddr + (unsigned int)noffH.initData.size) {
+          //determine current offset into executable file
+          file_off += pageNum * PageSize;
+
+          //determine the virtual address that the code gets loaded at;
+          virt_addr += pageNum * PageSize;
+
+          //convert the virt_addr to a physical address using your page table;
+          phys_addr = &machine->mainMemory[pageTable[virt_addr].physicalPage];
+
+          executable->ReadAt(phys_addr, PageSize, file_off);
+
+          pageNum++;  //next page
+       }
+
+       //if the end of the segment is not a full page, load the remaining fragment
+       if(virt_addr < noffH.initData.virtualAddr + (unsigned int)noffH.initData.size)
+       {
+          phys_addr = &machine->mainMemory[pageTable[virt_addr].physicalPage];
+          executable->ReadAt(phys_addr, virt_addr % PageSize, file_off);
+       }
+    }
+
+
+
+/*
+
     if (noffH.code.size > 0) {
         DEBUG('a', "Initializing code segment, at 0x%x, size %d\n",
               noffH.code.virtualAddr, noffH.code.size);
@@ -115,7 +203,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
         executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
                            noffH.initData.size, noffH.initData.inFileAddr);
     }
-
+*/
 }
 
 //----------------------------------------------------------------------
