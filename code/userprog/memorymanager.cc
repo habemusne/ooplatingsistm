@@ -1,5 +1,7 @@
 #include "memorymanager.h"
 
+
+
 MemoryManager::MemoryManager(int numPages)
 {
    physPages = new BitMap(numPages);
@@ -10,13 +12,13 @@ MemoryManager::~MemoryManager()
 {
    delete physPages;
    delete mutex;
-   delete MemManager;
+   //delete memoryManager;
 }
 
 int MemoryManager::AllocPage()
 {
    mutex->P();
-   int result = physPages.find();
+   int result = physPages->Find();
    mutex->V();
    return result;
 }
@@ -28,6 +30,9 @@ void MemoryManager::FreePage(int physPageNum)
    mutex->V();
 }
 
-bool PageIsAllocated(int physPageNum) {
-   return physPages->Test(physPageNum);
+bool MemoryManager::PageIsAllocated(int physPageNum) {
+   mutex->P();
+   int result = physPages->Test(physPageNum);
+   mutex->V();
+   return result;
 }
