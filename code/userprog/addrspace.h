@@ -15,8 +15,11 @@
 
 #include "copyright.h"
 #include "filesys.h"
+#include "memorymanager.h"
 
 #define UserStackSize		1024 	// increase this as necessary!
+
+extern MemoryManager* memoryManager;
 
 class AddrSpace {
 public:
@@ -30,6 +33,10 @@ public:
 
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch
+
+    /*NAN CHEN*/
+    int Initialize(OpenFile *executable);
+    /*NAN CHEN*/
 
 private:
     TranslationEntry *pageTable;	// Assume linear page table translation
