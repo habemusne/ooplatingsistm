@@ -14,6 +14,14 @@ void Exit(int status) {
 }
 
 SpaceId Exec(char *name, int argc, char **argv, int opt) {
+
+  if (name == NULL){
+    printf("syscall.cc: Passing in null directory name\n");
+    return;
+  }
+
+  
+
   OpenFile *executable = fileSystem->Open(filename);
   AddrSpace *space;
 
@@ -21,7 +29,9 @@ SpaceId Exec(char *name, int argc, char **argv, int opt) {
     printf("Unable to open file %s\n", filename);
     return;
   }
+
   space = new AddrSpace(executable);
+  space->Initialize();
 
 
   Thread* newThread = new Thread("thread", 0);
