@@ -1,5 +1,4 @@
 
-
 void ProcessStart(AddrSpace* space) {
   space->InitRegisters();   // set the initial register values
   space->RestoreState();    // load page table register
@@ -10,6 +9,10 @@ void ProcessStart(AddrSpace* space) {
 }
 
 void Exit(int status) {
+ 
+printf("The sum is: %d\n", status);
+
+
 
 }
 

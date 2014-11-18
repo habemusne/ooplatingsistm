@@ -37,6 +37,7 @@ StartProcess(char *filename)
     //initialize the memoryManager with pre-defined physical page size
     memoryManager = new MemoryManager(NumPhysPages);
     space = new AddrSpace(executable);
+    space->Initialize(executable);
     currentThread->space = space;
 
     delete executable;			// close file
