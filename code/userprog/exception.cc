@@ -48,6 +48,45 @@
 //	are in machine.h.
 //----------------------------------------------------------------------
 
+
+
+static void syscallExit(int status) 
+{
+   printf("The result returned from EXIT: %d\n", status);
+
+   currentThread->space->~AddrSpace();
+   currentThread->Finish();
+   ASSERT(FALSE);
+}
+
+static SpaceId Exec(char *name, int argc, char **argv, int opt) {
+  OpenFile *executable = fileSystem->Open(filename);
+  AddrSpace *space;
+
+  //check if the file is executable
+  executable = fileSystem->Open(name);
+  if(executable == NULL) {
+    printf("Error, Unable to open file %s\n", name);
+    currentThread->space->~AddrSpace();
+    currentThread->Finish();
+    ASSERT(FALSE);
+    return;
+  }
+
+  //create address space
+  space = new AddrSpace(executable);
+  space->Initialize();
+
+  //create new thread
+  Thread* newThread = new Thread(name);
+  newThread->space = space;
+  newThread->Fork(ProcessStart, (int) space);
+
+
+  delete executable;      // close file
+
+}
+
 void
 ExceptionHandler(ExceptionType which)
 {
@@ -59,11 +98,12 @@ ExceptionHandler(ExceptionType which)
     }
     else if((which == SyscallException) && (type == SC_Exit))
     {
-        printf("%d\n", machine->ReadRegister(4));
-	Exit( machine->ReadRegister(4));
+	syscallExit( machine->ReadRegister(4));
     }
     else {
         printf("Unexpected user mode exception %d %d\n", which, type);
         ASSERT(FALSE);
     }
 }
+
+

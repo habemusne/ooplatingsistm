@@ -10,10 +10,8 @@ void ProcessStart(AddrSpace* space) {
 
 void Exit(int status) {
  
-printf("The sum is: %d\n", status);
-
-
-
+   printf("The sum is: %d\n", status);
+   currentThread->Finish();
 }
 
 SpaceId Exec(char *name, int argc, char **argv, int opt) {
