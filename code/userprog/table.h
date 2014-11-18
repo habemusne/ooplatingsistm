@@ -6,19 +6,13 @@
 
 #define MAX_PROCESS 128
 
-struct Process
+class Table 
 {
-   Thread *thread;
-
-}
-
-
-class ProcessTable 
-{
-
 public:
    /* Create a table to hold at most "size" entries. */
    Table(int size) 
+
+   ~Table();
 
    /* Allocate a table slot for "object", returning the "index" of the
       allocated entry; otherwise, return -1 if no free slots are available. */
@@ -32,9 +26,9 @@ public:
    void Release(int index)
 
 private:
-   
-
-
+   Semaphore *mutex;
+   int *list;
+   int *value;
 }
 
 #endif // PROCESSTABLE_H

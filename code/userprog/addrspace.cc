@@ -201,9 +201,13 @@ int AddrSpace::Initialize(OpenFile *executable) {
         //  OF DEALLOCATING AND DELETING THE PageTable TO THE DESTRUCTOR of
         //  AddrSpace
         //
-        if (pageTable[i].physicalPage == -1) {
-          printf ("addrSpace.cc: Not enough physical page available\n");
-          return -1;
+        if (pageTable[i].physicalPage == -1) 
+	{
+           printf ("addrSpace.cc: Not enough physical page available\n");
+           for (unsigned int j = 0; j <= i; ++i) {
+              memoryManager->FreePage(pageTable[j].physicalPage);
+           }
+           return -1;
         }
         /*NAN CHEN*/
 

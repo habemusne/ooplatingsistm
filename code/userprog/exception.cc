@@ -49,11 +49,11 @@
 //----------------------------------------------------------------------
 
 // increment the PC
-void IncrementPC()
+void incrementPC()
 {
    machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
    machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
-   machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+   machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
 }
 
 static void syscallExit(int status) 
@@ -66,16 +66,19 @@ static void syscallExit(int status)
    ASSERT(FALSE);
 }
 
-static SpaceId syscallExec(char *name, int argc, char **argv, int opt) {
+static SpaceId syscallExec(int name, int argc, int argv, int opt) {
    OpenFile *executable = fileSystem->Open(name);
    AddrSpace *space;
 
    //name is the virtual address where stores the filename
    //change to physical address to get filename string
    char *filename = new char[100];  //maximum size 100
-   int i = 0; int ch = 1;
-   for(int i = 0; i < 100; i++) {
-      machine->ReadMem(name+i, 1, &ch);
+   int i = 0; 
+   int ch;
+   for(int i = 0; i < 100; i++) 
+   {
+      int physaddr = &pageTable[name+i/PageSize]->physicalPage * PageSize + (name + i) % PageSize;
+      ch = machine->mainMemory[physaddr];
       filename[i] = (char) ch;
       if(ch == 0)
          break;
@@ -84,18 +87,15 @@ static SpaceId syscallExec(char *name, int argc, char **argv, int opt) {
    //invalid name
    if(i == 99 && ch != 0)
    {
-      printf("Error, Unable to open file %s\n", name);
+      printf("Invalid file name %s\n", name);
       return 0;
    }
  
    //check if the file is executable
    executable = fileSystem->Open(name);
    if(executable == NULL) {
-     printf("Error, Unable to open file %s\n", name);
-     //currentThread->space->~AddrSpace();
-     //currentThread->Finish();
-     //ASSERT(FALSE);
-     return 0;
+      printf("Error, Unable to open file %s\n", name);
+      return 0;
    }
 
    //create address space
@@ -105,12 +105,19 @@ static SpaceId syscallExec(char *name, int argc, char **argv, int opt) {
    //create new thread
    Thread* newThread = new Thread(name);
    newThread->space = space;
-   newThread->Fork(ProcessStart, (int) space);
-
+   newThread->Fork(ProcessStart, space);
 
    delete executable;   // close file
 
    return spaceId;
+}
+
+void ProcessStart(AddrSpace* space) {
+  space->InitRegisters();   // set the initial register values
+  space->RestoreState();    // load page table register
+
+  machine->Run();     // jump to the user progam
+  ASSERT(FALSE);      // machine->Run never
 }
 
 void
@@ -128,10 +135,11 @@ ExceptionHandler(ExceptionType which)
     }
     else if((which == SyscallException) && (type == SC_Exec))
     {
-	syscallExec(machine->ReadRegister(4),
-	            machine->ReadRegister(5),
-		    machine->ReadRegister(6),
-		    machine->ReadRegister(7));
+	int spaceId = syscallExec(machine->ReadRegister(4),
+	            		  machine->ReadRegister(5),
+		    		  machine->ReadRegister(6),
+		    		  machine->ReadRegister(7));
+ 	incrementPC();
 	machine->WriteRegister(2, spaceId);
     }
     else {
@@ -139,5 +147,3 @@ ExceptionHandler(ExceptionType which)
         ASSERT(FALSE);
     }
 }
-
-
