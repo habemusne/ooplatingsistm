@@ -48,43 +48,69 @@
 //	are in machine.h.
 //----------------------------------------------------------------------
 
-
+// increment the PC
+void IncrementPC()
+{
+   machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+   machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+   machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+}
 
 static void syscallExit(int status) 
 {
    printf("The result returned from EXIT: %d\n", status);
 
    currentThread->space->~AddrSpace();
+   delete currentThread->space;
    currentThread->Finish();
    ASSERT(FALSE);
 }
 
-static SpaceId Exec(char *name, int argc, char **argv, int opt) {
-  OpenFile *executable = fileSystem->Open(filename);
-  AddrSpace *space;
+static SpaceId syscallExec(char *name, int argc, char **argv, int opt) {
+   OpenFile *executable = fileSystem->Open(name);
+   AddrSpace *space;
 
-  //check if the file is executable
-  executable = fileSystem->Open(name);
-  if(executable == NULL) {
-    printf("Error, Unable to open file %s\n", name);
-    currentThread->space->~AddrSpace();
-    currentThread->Finish();
-    ASSERT(FALSE);
-    return;
-  }
+   //name is the virtual address where stores the filename
+   //change to physical address to get filename string
+   char *filename = new char[100];  //maximum size 100
+   int i = 0; int ch = 1;
+   for(int i = 0; i < 100; i++) {
+      machine->ReadMem(name+i, 1, &ch);
+      filename[i] = (char) ch;
+      if(ch == 0)
+         break;
+   }
 
-  //create address space
-  space = new AddrSpace(executable);
-  space->Initialize();
+   //invalid name
+   if(i == 99 && ch != 0)
+   {
+      printf("Error, Unable to open file %s\n", name);
+      return 0;
+   }
+ 
+   //check if the file is executable
+   executable = fileSystem->Open(name);
+   if(executable == NULL) {
+     printf("Error, Unable to open file %s\n", name);
+     //currentThread->space->~AddrSpace();
+     //currentThread->Finish();
+     //ASSERT(FALSE);
+     return 0;
+   }
 
-  //create new thread
-  Thread* newThread = new Thread(name);
-  newThread->space = space;
-  newThread->Fork(ProcessStart, (int) space);
+   //create address space
+   space = new AddrSpace(executable);
+   space->Initialize();
+
+   //create new thread
+   Thread* newThread = new Thread(name);
+   newThread->space = space;
+   newThread->Fork(ProcessStart, (int) space);
 
 
-  delete executable;      // close file
+   delete executable;   // close file
 
+   return spaceId;
 }
 
 void
@@ -98,7 +124,15 @@ ExceptionHandler(ExceptionType which)
     }
     else if((which == SyscallException) && (type == SC_Exit))
     {
-	syscallExit( machine->ReadRegister(4));
+	syscallExit(machine->ReadRegister(4));
+    }
+    else if((which == SyscallException) && (type == SC_Exec))
+    {
+	syscallExec(machine->ReadRegister(4),
+	            machine->ReadRegister(5),
+		    machine->ReadRegister(6),
+		    machine->ReadRegister(7));
+	machine->WriteRegister(2, spaceId);
     }
     else {
         printf("Unexpected user mode exception %d %d\n", which, type);
