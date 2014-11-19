@@ -24,6 +24,8 @@
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
+#include "table.h"
+#include "machine.h"
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -62,12 +64,24 @@ static void syscallExit(int status)
 
    currentThread->space->~AddrSpace();
    delete currentThread->space;
+
+   for(int i = 0; i < MAX_PROCESS; i++)
+   {
+      if(table->Get(i) == currentThread)
+         table->Release(i);
+   }
+
    currentThread->Finish();
    ASSERT(FALSE);
 }
 
+static void ProcessStart(int space) {
+  machine->Run();     // jump to the user progam
+  ASSERT(FALSE);      // machine->Run never
+}
+
 static SpaceId syscallExec(int name, int argc, int argv, int opt) {
-   OpenFile *executable = fileSystem->Open(name);
+   OpenFile *executable;
    AddrSpace *space;
 
    //name is the virtual address where stores the filename
@@ -75,10 +89,13 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
    char *filename = new char[100];  //maximum size 100
    int i = 0; 
    int ch;
-   for(int i = 0; i < 100; i++) 
+   for(i = 0; i < 100; i++) 
    {
-      int physaddr = &pageTable[name+i/PageSize]->physicalPage * PageSize + (name + i) % PageSize;
-      ch = machine->mainMemory[physaddr];
+      //int physaddr = (pageTable[(name + i) / PageSize]->physicalPage) * PageSize + (name + i) % PageSize;
+      int physicalAddress;
+      machine->Translate(name + i, &physicalAddress, 1, FALSE);
+
+      ch = machine->mainMemory[physicalAddress];
       filename[i] = (char) ch;
       if(ch == 0)
          break;
@@ -87,37 +104,32 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
    //invalid name
    if(i == 99 && ch != 0)
    {
-      printf("Invalid file name %s\n", name);
+      printf("Invalid file name %s\n", filename);
       return 0;
    }
  
    //check if the file is executable
-   executable = fileSystem->Open(name);
+   executable = fileSystem->Open(filename);
    if(executable == NULL) {
-      printf("Error, Unable to open file %s\n", name);
+      printf("Error, Unable to open file %s\n", filename);
       return 0;
    }
 
    //create address space
    space = new AddrSpace(executable);
-   space->Initialize();
+   space->Initialize(executable);
 
    //create new thread
-   Thread* newThread = new Thread(name);
+   Thread* newThread = new Thread(filename);
+   int spaceId = table->Alloc(newThread);
    newThread->space = space;
-   newThread->Fork(ProcessStart, space);
+   space->InitRegisters();   // set the initial register values
+   space->RestoreState();    // load page table register
+   newThread->Fork(ProcessStart, 0);
 
    delete executable;   // close file
 
    return spaceId;
-}
-
-void ProcessStart(AddrSpace* space) {
-  space->InitRegisters();   // set the initial register values
-  space->RestoreState();    // load page table register
-
-  machine->Run();     // jump to the user progam
-  ASSERT(FALSE);      // machine->Run never
 }
 
 void
