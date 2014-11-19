@@ -60,7 +60,11 @@ static void syscallExit(int status)
 {
    printf("The result returned from EXIT: %d\n", status);
 
-   currentThread->space->~AddrSpace();
+   /*NAN CHEN*/
+   //   (I find that "delete" calls the destructor automatically)
+   //currentThread->space->~AddrSpace();
+   /*NAN CHEN*/
+
    delete currentThread->space;
    currentThread->Finish();
    ASSERT(FALSE);
@@ -75,9 +79,15 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
    char *filename = new char[100];  //maximum size 100
    int i = 0; 
    int ch;
+
+//DOCUMENT THIS 100
    for(int i = 0; i < 100; i++) 
    {
-      int physaddr = &pageTable[name+i/PageSize]->physicalPage * PageSize + (name + i) % PageSize;
+      /*NAN CHEN*/
+      //int physaddr = &pageTable[name+i/PageSize]->physicalPage * PageSize + (name + i) % PageSize;
+      int physaddr = space->pageTable[name+i/PageSize]->physicalPage * PageSize + (name + i) % PageSize;
+      /*NAN CHEN*/
+
       ch = machine->mainMemory[physaddr];
       filename[i] = (char) ch;
       if(ch == 0)
@@ -88,6 +98,7 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
    if(i == 99 && ch != 0)
    {
       printf("Invalid file name %s\n", name);
+
       return 0;
    }
  
