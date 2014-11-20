@@ -14,6 +14,11 @@
 #include "addrspace.h"
 #include "synch.h"
 #include "table.h"
+#include "memorymanager.h"
+
+Table *table;
+MemoryManager *memoryManager;
+
 
 //----------------------------------------------------------------------
 // StartProcess

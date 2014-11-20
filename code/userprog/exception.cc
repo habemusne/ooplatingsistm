@@ -25,6 +25,7 @@
 #include "system.h"
 #include "syscall.h"
 #include "table.h"
+#include "memorymanager.h"
 #include "machine.h"
 
 //----------------------------------------------------------------------
@@ -51,7 +52,7 @@
 //----------------------------------------------------------------------
 
 // increment the PC
-void incrementPC()
+static void incrementPC()
 {
    machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
    machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
@@ -62,11 +63,7 @@ static void syscallExit(int status)
 {
    printf("The result returned from EXIT: %d\n", status);
 
-   /*NAN CHEN*/
-   //   (I find that "delete" calls the destructor automatically)
-   //currentThread->space->~AddrSpace();
-   /*NAN CHEN*/
-
+   currentThread->space->AddrSpace();
    delete currentThread->space;
 
    for(int i = 0; i < MAX_PROCESS; i++)
@@ -79,7 +76,10 @@ static void syscallExit(int status)
    ASSERT(FALSE);
 }
 
-static void ProcessStart(int space) {
+static void ProcessStart(AddrSpace *space) {
+  space->InitRegisters();   // set the initial register values
+  space->RestoreState();    // load page table register
+
   machine->Run();     // jump to the user progam
   ASSERT(FALSE);      // machine->Run never
 }
@@ -93,26 +93,12 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
    char *filename = new char[100];  //maximum size 100
    int i = 0; 
    int ch;
-<<<<<<< HEAD
-
-//DOCUMENT THIS 100
-   for(int i = 0; i < 100; i++) 
-   {
-      /*NAN CHEN*/
-      //int physaddr = &pageTable[name+i/PageSize]->physicalPage * PageSize + (name + i) % PageSize;
-      int physaddr = space->pageTable[name+i/PageSize]->physicalPage * PageSize + (name + i) % PageSize;
-      /*NAN CHEN*/
-
-      ch = machine->mainMemory[physaddr];
-=======
    for(i = 0; i < 100; i++) 
    {
       //int physaddr = (pageTable[(name + i) / PageSize]->physicalPage) * PageSize + (name + i) % PageSize;
-      int physicalAddress;
-      machine->Translate(name + i, &physicalAddress, 1, FALSE);
-
-      ch = machine->mainMemory[physicalAddress];
->>>>>>> 1eee66bee975406a8ee8215defe059aa2daf3710
+      unsigned int physicalAddress = currentThread->space->vir_to_phys(name + i);
+      ch = *physicalAddress;
+      printf("this character is: %c", (char)ch);
       filename[i] = (char) ch;
       if(ch == 0)
          break;
@@ -121,12 +107,7 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
    //invalid name
    if(i == 99 && ch != 0)
    {
-<<<<<<< HEAD
-      printf("Invalid file name %s\n", name);
-
-=======
       printf("Invalid file name %s\n", filename);
->>>>>>> 1eee66bee975406a8ee8215defe059aa2daf3710
       return 0;
    }
  
@@ -145,9 +126,7 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
    Thread* newThread = new Thread(filename);
    int spaceId = table->Alloc(newThread);
    newThread->space = space;
-   space->InitRegisters();   // set the initial register values
-   space->RestoreState();    // load page table register
-   newThread->Fork(ProcessStart, 0);
+   newThread->Fork((VoidFunctionPtr) ProcessStart, (int) newThread->space);
 
    delete executable;   // close file
 

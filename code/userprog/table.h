@@ -1,6 +1,7 @@
-#ifndef PROCESSTABLE_H
-#define PROCESSTABLE_H
+#ifndef TABLE_H
+#define TABLE_H
 
+#include "copyright.h"
 #include "thread.h"
 
 #define MAX_PROCESS 128
@@ -30,4 +31,7 @@ private:
    int *value;
 };
 
-#endif // PROCESSTABLE_H
+extern Table *table;
+
+
+#endif // TABLE_H
