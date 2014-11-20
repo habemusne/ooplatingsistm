@@ -28,6 +28,8 @@ public:
     // stored in the file "executable"
     ~AddrSpace();			// De-allocate an address space
 
+    char* vir_to_phys(unsigned int virtual_addr);
+
     void InitRegisters();		// Initialize user-level CPU registers,
     // before jumping to user code
 
