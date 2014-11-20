@@ -19,6 +19,8 @@
 #include "system.h"
 #include "addrspace.h"
 #include "noff.h"
+#include "table.h"
+#include "memorymanager.h"
 #ifdef HOST_SPARC
 #include <strings.h>
 #endif
@@ -29,6 +31,9 @@
 //	object file header, in case the file was generated on a little
 //	endian machine, and we're now running on a big endian machine.
 //----------------------------------------------------------------------
+
+MemoryManager *memoryManager;
+Table *table;
 
 static void
 SwapHeader (NoffHeader *noffH)

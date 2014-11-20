@@ -13,15 +13,13 @@
 #include "console.h"
 #include "addrspace.h"
 #include "synch.h"
-//#include "memorymanager.h"
+#include "table.h"
 
 //----------------------------------------------------------------------
 // StartProcess
 // 	Run a user program.  Open the executable, load it into
 //	memory, and jump to it.
 //----------------------------------------------------------------------
-
-MemoryManager *memoryManager;
 
 void
 StartProcess(char *filename)
@@ -35,10 +33,12 @@ StartProcess(char *filename)
     }
 
     //initialize the memoryManager with pre-defined physical page size
+    table = new Table(MAX_PROCESS);
     memoryManager = new MemoryManager(NumPhysPages);
     space = new AddrSpace(executable);
     space->Initialize(executable);
     currentThread->space = space;
+    table->Alloc(currentThread);
 
     delete executable;			// close file
 

@@ -6,16 +6,18 @@ Table::Table(int size)
    mutex = Semaphore("Mutex", 1);
    list = new int[MAX_PROCESS];
    value = new int[MAX_PROCESS];
-   for(int i = 0; i < size; i++)
+   for(int i = 0; i < MAX_PROCESS; i++)
       value[i] = 0;
 }
 
 Table::~Table()
 {
-   for(int i = 0; i <= MAX_PROCESS; i++){
+   for(int i = 0; i < MAX_PROCESS; i++){
       Release(i);
+
    delete mutex;
    delete value;
+   delete list;
 }
 
 
@@ -23,9 +25,8 @@ Table::~Table()
    allocated entry; otherwise, return -1 if no free slots are available. */
 int Table::Alloc(void *object)
 {
-   int i;
    mutex->P();
-   for(i = 0; i < MAX_PROCESS; i++)
+   for(int i = 0; i < MAX_PROCESS; i++)
       if(value[i] == 0)
       {
          value[i] = 1;
@@ -35,17 +36,17 @@ int Table::Alloc(void *object)
    mutex->V();
 
    if (i < MAX_PROCESS)
-      return i + 1;
+      return i;
    else 
-      return - 1;
+      return -1;
 }
 
 /* Retrieve the object from table slot at "index", or NULL if that
    slot has not been allocated. */
 void* Table::Get(int index) 
 {
-   if(index > 0 && index <= MAX_PROCESS)
-      return (void *)(list + index - 1);
+   if(index >= 0 && index < MAX_PROCESS)
+      return (void *)(list + index);
    else
       return NULL;
 }
@@ -54,7 +55,9 @@ void* Table::Get(int index)
 void Table::Release(int index)
 {
    mutex->P();
-   if(index > 0 && index <= MAX_PROCESS)
-      delete (list + index - 1);
+   value[index] = 0;
+   if(index >= 0 && index < MAX_PROCESS)
+      delete (list + index);
+
    mutex->V();
 }
