@@ -156,6 +156,7 @@ ExceptionHandler(ExceptionType which)
     }
     else if((which == SyscallException) && (type == SC_Exit))
     {
+printf("exception.cc: Exiting\n");
 	syscallExit(machine->ReadRegister(4));
     }
     else if((which == SyscallException) && (type == SC_Exec))
