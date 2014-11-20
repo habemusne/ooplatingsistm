@@ -86,8 +86,7 @@ AddrSpace::~AddrSpace()
   }
   /*NAN CHEN*/
 
-  printf("[AddrSpace] Destructor of Thread: %s\n", currentThread->getName());
-  delete pageTable;
+  delete [] pageTable;
 }
 
 //----------------------------------------------------------------------
@@ -167,9 +166,13 @@ int AddrSpace::Initialize(OpenFile *executable) {
     // how big is address space?
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
            + UserStackSize; // we need to increase the size
+
+    printf("Address Space Size: %d\n", size);
     // to leave room for the stack
     numPages = divRoundUp(size, PageSize);
     size = numPages * PageSize;
+
+    printf("numPages = %d, size = numPages * PageSize = %d\n", numPages, size);
 
     ASSERT(numPages <= NumPhysPages);   // check we're not trying
     // to run anything too big --
@@ -212,7 +215,7 @@ int AddrSpace::Initialize(OpenFile *executable) {
         if (pageTable[i].physicalPage == -1) 
 	{
            printf ("addrSpace.cc: Not enough physical page available\n");
-           for (unsigned int j = 0; j <= i; ++i) {
+           for (unsigned int j = 0; j < i; ++j) {
               memoryManager->FreePage(pageTable[j].physicalPage);
            }
            return -1;

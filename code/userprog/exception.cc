@@ -108,7 +108,8 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
 
    printf("\n");
    //invalid name
-   if(i == 99 && ch != 0)
+   /*NAN CHEN: Changed i == 99 to i >= 99*/
+   if(i >= 99 && ch != 0)
    {
       printf("Invalid file name %s\n", filename);
       return 0;
@@ -123,7 +124,15 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
 
    //create address space
    space = new AddrSpace(executable);
-   space->Initialize(executable);
+
+   /*NAN CHEN*/
+   //space->Initialize(executable);
+   int spaceReturn = space->Initialize(executable);
+   if (spaceReturn == -1){
+     printf("Error, unable to initialize address space for %s \n", filename);
+     return 0;
+   }
+   /*NAN CHEN*/
 
    //create new thread
    Thread* newThread = new Thread(filename);
