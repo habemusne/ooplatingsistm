@@ -61,9 +61,10 @@ static void incrementPC()
 
 static void syscallExit(int status) 
 {
-   printf("The result returned from EXIT: %d\n", status);
+   printf("[syscallExit] Thread %s is exiting\n", currentThread->getName());
+   printf("[syscallExit] The result returned from EXIT: %d\n", status);
 
-   currentThread->space->~AddrSpace();
+   //do not do ~space again, delete call destructor
    delete currentThread->space;
 
    for(int i = 0; i < MAX_PROCESS; i++)
@@ -87,6 +88,7 @@ static void ProcessStart(AddrSpace *space) {
 static SpaceId syscallExec(int name, int argc, int argv, int opt) {
    OpenFile *executable;
    AddrSpace *space;
+   printf("[syscallExec] In syscallExec()\n");
 
    //name is the virtual address where stores the filename
    //change to physical address to get filename string
@@ -98,12 +100,13 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
       //int physaddr = (pageTable[(name + i) / PageSize]->physicalPage) * PageSize + (name + i) % PageSize;
       char *physicalAddress = currentThread->space->vir_to_phys(name + i);
       ch = *physicalAddress;
-      printf("this character is: %c", (char)ch);
+      printf("%c", (char)ch);
       filename[i] = (char) ch;
       if(ch == 0)
          break;
    }
 
+   printf("\n");
    //invalid name
    if(i == 99 && ch != 0)
    {

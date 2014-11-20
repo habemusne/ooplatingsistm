@@ -86,7 +86,8 @@ AddrSpace::~AddrSpace()
   }
   /*NAN CHEN*/
 
-  delete [] pageTable;
+  printf("[AddrSpace] Destructor of Thread: %s\n", currentThread->getName());
+  delete pageTable;
 }
 
 //----------------------------------------------------------------------
