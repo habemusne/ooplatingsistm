@@ -146,9 +146,9 @@ void AddrSpace::RestoreState()
     machine->pageTableSize = numPages;
 }
 
-unsigned int AddrSpace::vir_to_phys(unsigned int virtual_addr)
+char* AddrSpace::vir_to_phys(unsigned int virtual_addr)
 {
-   return &machine->mainMemory[pageTable[virtual_addr/PageSize].physicalPage * PageSize + virt_addr % PageSize];
+   return &machine->mainMemory[pageTable[virtual_addr/PageSize].physicalPage * PageSize + virtual_addr % PageSize];
 }
 
 

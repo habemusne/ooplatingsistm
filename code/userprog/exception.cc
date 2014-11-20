@@ -96,7 +96,7 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
    for(i = 0; i < 100; i++) 
    {
       //int physaddr = (pageTable[(name + i) / PageSize]->physicalPage) * PageSize + (name + i) % PageSize;
-      unsigned int physicalAddress = currentThread->space->vir_to_phys(name + i);
+      char *physicalAddress = currentThread->space->vir_to_phys(name + i);
       ch = *physicalAddress;
       printf("this character is: %c", (char)ch);
       filename[i] = (char) ch;
