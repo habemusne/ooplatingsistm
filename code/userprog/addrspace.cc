@@ -19,8 +19,6 @@
 #include "system.h"
 #include "addrspace.h"
 #include "noff.h"
-#include "table.h"
-#include "memorymanager.h"
 #ifdef HOST_SPARC
 #include <strings.h>
 #endif
@@ -31,9 +29,6 @@
 //	object file header, in case the file was generated on a little
 //	endian machine, and we're now running on a big endian machine.
 //----------------------------------------------------------------------
-
-MemoryManager *memoryManager;
-Table *table;
 
 static void
 SwapHeader (NoffHeader *noffH)
@@ -151,6 +146,13 @@ void AddrSpace::RestoreState()
     machine->pageTableSize = numPages;
 }
 
+unsigned int AddrSpace::vir_to_phys(unsigned int virtual_addr)
+{
+   return &machine->mainMemory[pageTable[virtual_addr/PageSize].physicalPage * PageSize + virt_addr % PageSize];
+}
+
+
+
 int AddrSpace::Initialize(OpenFile *executable) {
     NoffHeader noffH;
     unsigned int i, size;
@@ -244,7 +246,7 @@ int AddrSpace::Initialize(OpenFile *executable) {
        //if the section start address is not on a page boundary
        if(virt_addr % PageSize != 0)
        {
-          phys_addr = &machine->mainMemory[pageTable[virt_addr/PageSize].physicalPage * PageSize + virt_addr % PageSize];
+          phys_addr = vir_to_phys(virt_addr);
 
 	  //This section only exists in one section
 	  if(virt_addr/PageSize == (end_virt_addr)/PageSize)
@@ -264,7 +266,7 @@ int AddrSpace::Initialize(OpenFile *executable) {
        //load a full page when the remaining lasts for more than 1 page
        while (virt_addr + PageSize <= end_virt_addr) {
           //convert the virt_addr to a physical address using your page table;
-          phys_addr = &machine->mainMemory[pageTable[virt_addr/PageSize].physicalPage * PageSize];
+          phys_addr = vir_to_phys(virt_addr);
 
           executable->ReadAt(phys_addr, PageSize, file_off);
 
@@ -279,7 +281,7 @@ int AddrSpace::Initialize(OpenFile *executable) {
        if(virt_addr < end_virt_addr)
        {
           //on boundary
-          phys_addr = &machine->mainMemory[pageTable[virt_addr/PageSize].physicalPage * PageSize];
+          phys_addr = vir_to_phys(virt_addr);
 
           executable->ReadAt(phys_addr, end_virt_addr - virt_addr, file_off);
        }
@@ -294,7 +296,7 @@ int AddrSpace::Initialize(OpenFile *executable) {
        //if the section start address is not on a page boundary
        if(virt_addr % PageSize != 0)
        {
-          phys_addr = &machine->mainMemory[pageTable[virt_addr/PageSize].physicalPage * PageSize + virt_addr % PageSize];
+          phys_addr = vir_to_phys(virt_addr);
 
 	  //This section only exists in one section
 	  if(virt_addr/PageSize == (end_virt_addr)/PageSize)
@@ -314,7 +316,7 @@ int AddrSpace::Initialize(OpenFile *executable) {
        //load a full page when the remaining lasts for more than 1 page
        while (virt_addr + PageSize <= end_virt_addr) {
           //convert the virt_addr to a physical address using your page table;
-          phys_addr = &machine->mainMemory[pageTable[virt_addr/PageSize].physicalPage * PageSize];
+          phys_addr = vir_to_phys(virt_addr);
 
           executable->ReadAt(phys_addr, PageSize, file_off);
 
@@ -329,7 +331,7 @@ int AddrSpace::Initialize(OpenFile *executable) {
        if(virt_addr < end_virt_addr)
        {
           //on boundary
-          phys_addr = &machine->mainMemory[pageTable[virt_addr/PageSize].physicalPage * PageSize];
+          phys_addr = vir_to_phys(virt_addr);
 
           executable->ReadAt(phys_addr, end_virt_addr - virt_addr, file_off);
        }

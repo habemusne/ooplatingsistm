@@ -18,4 +18,6 @@ class MemoryManager
       Semaphore *mutex;
 };
 
+extern MemoryManager *memoryManager;
+
 #endif
