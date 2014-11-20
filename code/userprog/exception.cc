@@ -63,7 +63,7 @@ static void syscallExit(int status)
 {
    printf("The result returned from EXIT: %d\n", status);
 
-   currentThread->space->AddrSpace();
+   currentThread->space->~AddrSpace();
    delete currentThread->space;
 
    for(int i = 0; i < MAX_PROCESS; i++)

@@ -3,7 +3,7 @@
 /* Create a table to hold at most "size" entries. */
 Table::Table(int size)
 {
-   mutex = Semaphore("Mutex", 1);
+   mutex = new Semaphore("Mutex", 1);
    list = new int[MAX_PROCESS];
    value = new int[MAX_PROCESS];
    for(int i = 0; i < MAX_PROCESS; i++)
@@ -14,6 +14,7 @@ Table::~Table()
 {
    for(int i = 0; i < MAX_PROCESS; i++){
       Release(i);
+   }
 
    delete mutex;
    delete value;
@@ -26,7 +27,8 @@ Table::~Table()
 int Table::Alloc(void *object)
 {
    mutex->P();
-   for(int i = 0; i < MAX_PROCESS; i++)
+   int i;
+   for(i = 0; i < MAX_PROCESS; i++)
       if(value[i] == 0)
       {
          value[i] = 1;
