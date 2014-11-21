@@ -4,8 +4,8 @@
 //EXPECTED: normal exit
 int main(){
   int result = 0;
-  result = Exec("../test/exitFile500Byte", 0, 0, 0);
-  result = Exec("../test/exitFile500Byte", 0, 0, 0);
-  result = Exec("../test/exitFile500Byte", 0, 0, 0);
+  result = Exec("../test/exitFile300Byte", 0, 0, 0);
+  result = Exec("../test/exitFile300Byte", 0, 0, 0);
+  result = Exec("../test/exitFile300Byte", 0, 0, 0);
   Exit(result);
 }

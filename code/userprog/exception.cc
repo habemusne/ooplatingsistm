@@ -56,7 +56,11 @@ static void incrementPC()
 {
    machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
    machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
-   machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
+   
+   /*NAN CHEN*/
+   //machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
+   machine->WriteRegister(NextPCReg, PrevPCReg);
+   /*NAN CHEN*/
 }
 
 static void syscallExit(int status) 
@@ -149,6 +153,10 @@ void
 ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
+if (type == SC_Exit){
+  printf("YES\n");
+}
+    printf("exception.cc: type = %d\n", type);
 
     if ((which == SyscallException) && (type == SC_Halt)) {
         DEBUG('a', "Shutdown, initiated by user program.\n");
