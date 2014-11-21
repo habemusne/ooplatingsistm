@@ -163,16 +163,20 @@ int AddrSpace::Initialize(OpenFile *executable) {
         SwapHeader(&noffH);
     ASSERT(noffH.noffMagic == NOFFMAGIC);
 
+    printf("[machine.h] Total memory size: %d\n", MemorySize);
+    printf("[machine.h] PageSize: %d\n", PageSize);
+
+
     // how big is address space?
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
            + UserStackSize; // we need to increase the size
 
-    printf("Address Space Size: %d\n", size);
+    printf("Acutal address Space Size: %d\n", size);
     // to leave room for the stack
     numPages = divRoundUp(size, PageSize);
     size = numPages * PageSize;
 
-    printf("numPages = %d, size = numPages * PageSize = %d\n", numPages, size);
+    printf("numPages = %d, size allocated = numPages * PageSize = %d\n", numPages, size);
 
     ASSERT(numPages <= NumPhysPages);   // check we're not trying
     // to run anything too big --
@@ -215,7 +219,7 @@ int AddrSpace::Initialize(OpenFile *executable) {
         if (pageTable[i].physicalPage == -1) 
 	{
            printf ("addrSpace.cc: Not enough physical page available\n");
-           for (unsigned int j = 0; j < i; ++j) {
+           for (unsigned int j = 0; j <= i; ++j) {
               memoryManager->FreePage(pageTable[j].physicalPage);
            }
            return -1;

@@ -58,8 +58,9 @@ static void incrementPC()
    machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
    
    /*NAN CHEN*/
-   //machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
-   machine->WriteRegister(NextPCReg, PrevPCReg);
+   //I am sure this is correct. should be incrented by 4
+   machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
+   //machine->WriteRegister(NextPCReg, PrevPCReg);
    /*NAN CHEN*/
 }
 
@@ -146,6 +147,7 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
 
    delete executable;   // close file
 
+   printf("[syscallExec] The spaceID of %s is %d\n", newThread->getName(), spaceId);
    return spaceId;
 }
 
@@ -153,22 +155,23 @@ void
 ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
-if (type == SC_Exit){
-  printf("YES\n");
-}
-    printf("exception.cc: type = %d\n", type);
 
     if ((which == SyscallException) && (type == SC_Halt)) {
         DEBUG('a', "Shutdown, initiated by user program.\n");
+	printf("[exceptionHandler] SC_Halt\n");
+
         interrupt->Halt();
     }
     else if((which == SyscallException) && (type == SC_Exit))
     {
-printf("exception.cc: Exiting\n");
+    	printf("[exceptionHandler] SC_Exit\n");
+
 	syscallExit(machine->ReadRegister(4));
     }
     else if((which == SyscallException) && (type == SC_Exec))
     {
+    	printf("[exceptionHandler] SC_Exec\n");
+
 	int spaceId = syscallExec(machine->ReadRegister(4),
 	            		  machine->ReadRegister(5),
 		    		  machine->ReadRegister(6),
