@@ -72,12 +72,7 @@ static void syscallExit(int status)
    //do not do ~space again, delete call destructor
    delete currentThread->space;
 
-   for(int i = 0; i < MAX_PROCESS; i++)
-   {
-      if(table->Get(i) == currentThread)
-         table->Release(i);
-   }
-
+   table->Release(table->GetIndex(currentThread));
    currentThread->Finish();
    ASSERT(FALSE);
 }

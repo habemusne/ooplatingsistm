@@ -12,6 +12,7 @@ Table::Table(int size)
 
 Table::~Table()
 {
+   mutex->P();
    for(int i = 0; i < MAX_PROCESS; i++){
       Release(i);
    }
@@ -19,6 +20,7 @@ Table::~Table()
    delete mutex;
    delete value;
    delete list;
+   mutex->V();
 }
 
 
@@ -28,11 +30,11 @@ int Table::Alloc(void *object)
 {
    mutex->P();
    int i;
-   for(i = 0; i < MAX_PROCESS; i++)
+   for(i = 2; i < MAX_PROCESS; i++)
       if(value[i] == 0)
       {
          value[i] = 1;
-         object = (void *)(list + i);
+         list[i] = (int)object;
          break;
       }
    mutex->V();
@@ -48,7 +50,7 @@ int Table::Alloc(void *object)
 void* Table::Get(int index) 
 {
    if(index >= 0 && index < MAX_PROCESS)
-      return (void *)(list + index);
+      return (void*)list[index];
    else
       return NULL;
 }
@@ -59,7 +61,29 @@ void Table::Release(int index)
    mutex->P();
    value[index] = 0;
    if(index >= 0 && index < MAX_PROCESS)
-      delete (list + index);
+      list[index] = 0;
 
    mutex->V();
+}
+
+int Table::GetIndex(void *thread)
+{
+   for(int i = 1; i < MAX_PROCESS; i++)
+   {
+      if(table->Get(i) == thread)
+         return i;
+   }
+
+   return -1;
+}
+
+int Table::Alloc_mainThread(void *object)
+{
+   //index 1 is reserved for main thread
+   mutex->P();
+   value[1] = 1;
+   list[1] = (int)object;
+   mutex->V();
+
+   return 1;
 }

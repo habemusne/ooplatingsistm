@@ -25,6 +25,12 @@ public:
    /* Free the table slot at index. */
    void Release(int index);
 
+   //get the spaceid of the thread passed in
+   int GetIndex(void *thread);
+
+   //spaceId 1 is reservied for main thread
+   int Alloc_mainThread(void *object);
+
 private:
    Semaphore *mutex;
    int *list;

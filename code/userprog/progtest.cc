@@ -41,9 +41,15 @@ StartProcess(char *filename)
     table = new Table(MAX_PROCESS);
     memoryManager = new MemoryManager(NumPhysPages);
     space = new AddrSpace(executable);
+
+    int spaceId = table->Alloc_mainThread(currentThread);
+    printf("%d\n", (int)currentThread);
+    printf("%d\n", (int)table->GetIndex(currentThread));
+    printf("[progtest] The spaceID of %s is %d\n", currentThread->getName(), spaceId);
+
     space->Initialize(executable);
     currentThread->space = space;
-    table->Alloc(currentThread);
+   
 
     delete executable;			// close file
 
