@@ -47,7 +47,7 @@ StartProcess(char *filename)
     printf("%d\n", (int)table->GetIndex(currentThread));
     printf("[progtest] The spaceID of %s is %d\n", currentThread->getName(), spaceId);
 
-    space->Initialize(executable);
+    space->Initialize(executable, true);
     currentThread->space = space;
    
 

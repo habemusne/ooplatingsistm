@@ -154,7 +154,7 @@ char* AddrSpace::vir_to_phys(unsigned int virtual_addr)
 
 
 
-int AddrSpace::Initialize(OpenFile *executable) {
+int AddrSpace::Initialize(OpenFile *executable, bool isProgTest) {
     NoffHeader noffH;
     unsigned int i, size;
 
@@ -180,7 +180,7 @@ int AddrSpace::Initialize(OpenFile *executable) {
     printf("numPages = %d, size allocated = numPages * PageSize = %d\n", numPages, size);
 
     //if it is the main thread
-    if(table->GetIndex(currentThread) == 1)
+    if(isProgTest)
        ASSERT(numPages <= NumPhysPages);   // check we're not trying
     // to run anything too big --
     // at least until we have
