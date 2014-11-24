@@ -1,27 +1,27 @@
 #include "synchconsole.h"
 
-synchConsole = new SynchConsole();
-
 static Semaphore *readAvail;
 static Semaphore *writeDone;
 
-static void ReadAvail()
+static void ReadAvail(int arg)
 { 
    readAvail->V(); 
 }
-
-static void WriteDone() 
+static void WriteDone(int arg) 
 {
    writeDone->V();
 }
 
+SynchConsole *synchConsole = new SynchConsole(NULL, NULL);
 
-SynchConsole::SynchConsole()
+
+SynchConsole::SynchConsole(char *readFile, char *writeFile)
 {
-   readAvail = new Semaphore("readAvail", 1);
-   writeDone = new Semaphore("writeAvail", 1);
-   mutex = new Semaphore("mutex", 1);
-   console = new Console(readFile, writeFile, (VoidFunctionPtr) ReadAvail, (VoidFunctionPtr) WriteDone, 0);
+   readAvail = new Semaphore("readAvail", 0);
+   writeDone = new Semaphore("writeAvail", 0);
+   mutex = new Semaphore("mutex", 0);
+   printf("I believe the bug is here!!!!!!!!!!!!!!!!!\n");
+   console = new Console(readFile, writeFile, (VoidFunctionPtr)ReadAvail, (VoidFunctionPtr)WriteDone, 0);
 }
 
 SynchConsole::~SynchConsole()
@@ -44,8 +44,8 @@ char SynchConsole::SynchGetChar()
 {
    char ch;
    mutex->P();
-   ch = console->GetChar();
    readAvail->P();
+   ch = console->GetChar();
    mutex->V();
 
    return ch;

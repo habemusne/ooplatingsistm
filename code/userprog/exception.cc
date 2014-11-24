@@ -27,6 +27,7 @@
 #include "table.h"
 #include "memorymanager.h"
 #include "machine.h"
+#include "synchconsole.h"
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -183,13 +184,13 @@ static int syscallRead(int buffer_addr, int size, int id) {
 
 static void syscallWrite(int buffer_addr, int size, int id) {
    
-   if(size == 0)
-      return 0;
-
-   if(id == 0)
-      synchConsole->SynchPutString((char*) buffer_addr, size);
-   else
-      printf("Write to a file has not been impelemented\n");
+   if(size != 0)
+   { 
+      if(id == 0)
+         synchConsole->SynchPutString((char*) buffer_addr, size);
+      else
+         printf("Write to a file has not been impelemented\n");
+   }
 }
 
 
@@ -223,20 +224,24 @@ ExceptionHandler(ExceptionType which)
     }
     else if((which == SyscallException) && (type == SC_Read))
     {
+       
        int read_num;
        read_num = syscallRead(machine->ReadRegister(4),
 	               	      machine->ReadRegister(5),
 		              machine->ReadRegister(6));
        incrementPC();
        machine->WriteRegister(2, read_num);
+       
     }
     else if((which == SyscallException) && (type == SC_Write))
     {
-       syscallRead(machine->ReadRegister(4),
+       
+       syscallWrite(machine->ReadRegister(4),
 	           machine->ReadRegister(5),
 		   machine->ReadRegister(6));
        incrementPC();
        machine->WriteRegister(2, 0);
+       
     }
     else {
         printf("Unexpected user mode exception %d %d\n", which, type);

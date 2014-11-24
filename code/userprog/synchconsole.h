@@ -7,7 +7,7 @@
 class SynchConsole
 {
    public:
-      SynchConsole();
+      SynchConsole(char *readFile, char *writeFile);
       ~SynchConsole();
 
       void SynchPutChar(char ch);
@@ -15,6 +15,9 @@ class SynchConsole
 
       void SynchPutString(char *c, int n);   //write the string to the terminal
       int SynchGetString(char *c, int n);   //Poll the console input string
+
+      void ReadAvail();
+      void WriteDone(); 
 
    private:
       Semaphore *mutex;
