@@ -15,10 +15,12 @@
 #include "synch.h"
 #include "table.h"
 #include "memorymanager.h"
+#include "synchconsole.h"
 
 Table *table;
 MemoryManager *memoryManager;
 
+SynchConsole *synchConsole;
 
 //----------------------------------------------------------------------
 // StartProcess
@@ -41,6 +43,7 @@ StartProcess(char *filename)
     table = new Table(MAX_PROCESS);
     memoryManager = new MemoryManager(NumPhysPages);
     space = new AddrSpace(executable);
+    synchConsole = new SynchConsole(0, 0);
 
     int spaceId = table->Alloc_mainThread(currentThread);
     printf("%d\n", (int)currentThread);
@@ -90,6 +93,7 @@ static void WriteDone(int arg) {
 void
 ConsoleTest (char *in, char *out)
 {
+printf("FLAG2");
     char ch;
 
     console = new Console(in, out, ReadAvail, WriteDone, 0);

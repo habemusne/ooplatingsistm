@@ -12,9 +12,6 @@ void SynchConsole::WriteDone()
    writeDone->V();
 }
 
-SynchConsole *synchConsole = new SynchConsole(NULL, NULL);
-
-
 SynchConsole::SynchConsole(char *readFile, char *writeFile)
 {
    readAvail = new Semaphore("readAvail", 0);
