@@ -37,7 +37,8 @@ public:
     void RestoreState();		// info on a context switch
 
     /*NAN CHEN*/
-    int Initialize(OpenFile *executable, bool isProgTest);
+    int Initialize(OpenFile *executable, bool isProgTesti,
+        char* arg_vird, int argumentSize);
     /*NAN CHEN*/
 
 private:

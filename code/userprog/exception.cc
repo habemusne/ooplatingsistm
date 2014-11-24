@@ -122,16 +122,37 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
       return 0;
    }
 
+   /*NAN CHEN*/
+   char* argument = new char[100];
+   i = 0;
+   ch = 0;
+   for (i = 0; i < 100; ++i){
+     char *physicalAddress = currentThread->space->vir_to_phys(argv + i);
+     ch = *physicalAddress;
+     argument[i] = (char) ch;
+     printf("%c", (char)ch);
+     if (ch == 0){
+       break;
+     }
+   }
+   printf("\n");
+   if (i >= 99 && ch != 0){
+     printf("Invalid argument %s\n", argument);
+     return 0;
+   }
+   /*NAN CHEN*/
+
    //create address space
    space = new AddrSpace(executable);
 
    /*NAN CHEN*/
    //space->Initialize(executable);
-   int spaceReturn = space->Initialize(executable, false);
+   int spaceReturn = space->Initialize(executable, false, argv, i);
    if (spaceReturn == -1){
      printf("Error, unable to initialize address space for %s \n", filename);
      return 0;
    }
+   delete argument;
    /*NAN CHEN*/
 
    //create new thread
