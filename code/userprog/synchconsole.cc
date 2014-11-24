@@ -3,11 +3,11 @@
 static Semaphore *readAvail;
 static Semaphore *writeDone;
 
-static void ReadAvail(int arg)
+void SynchConsole::ReadAvail()
 { 
    readAvail->V(); 
 }
-static void WriteDone(int arg) 
+void SynchConsole::WriteDone() 
 {
    writeDone->V();
 }
@@ -21,7 +21,7 @@ SynchConsole::SynchConsole(char *readFile, char *writeFile)
    writeDone = new Semaphore("writeAvail", 0);
    mutex = new Semaphore("mutex", 0);
    printf("I believe the bug is here!!!!!!!!!!!!!!!!!\n");
-   console = new Console(readFile, writeFile, (VoidFunctionPtr)ReadAvail, (VoidFunctionPtr)WriteDone, 0);
+   console = new Console(readFile, writeFile, (VoidFunctionPtr)(&SynchConsole::ReadAvail), (VoidFunctionPtr)(&SynchConsole::WriteDone), 0);
 }
 
 SynchConsole::~SynchConsole()

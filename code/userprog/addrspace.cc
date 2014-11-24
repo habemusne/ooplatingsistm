@@ -355,8 +355,8 @@ int AddrSpace::Initialize(OpenFile *executable, bool isProgTest,
 
    virt_addr = (unsigned int)arg_vird;
    end_virt_addr = (unsigned int)arg_vird + argumentSize;
-   char** value = (char**)machine->ReadRegister(6);
-
+   int value = machine->ReadRegister(6);
+/*
    if(argumentSize > 0)
    {
        //if the section start address is not on a page boundary
@@ -367,13 +367,13 @@ int AddrSpace::Initialize(OpenFile *executable, bool isProgTest,
 	  //This section only exists in one section
 	  if(virt_addr/PageSize == (end_virt_addr)/PageSize)
 	  {
-	     WriteMem(phys_addr, argumentSize, (int)*value);
+	     WriteMem(phys_addr, argumentSize, (int)(vir_to_phys(value)));
              *value += argumentSize;
 	     virt_addr += argumentSize;
 	  }
 	  else  //this section lasts in more than 2 page
 	  {
-             WriteMem(phys_addr, PageSize - virt_addr % PageSize, (int)*value);
+             WriteMem(phys_addr, PageSize - virt_addr % PageSize, value);
     	     *value += PageSize - virt_addr % PageSize;
              virt_addr += PageSize - virt_addr % PageSize;
 	  }
@@ -384,7 +384,7 @@ int AddrSpace::Initialize(OpenFile *executable, bool isProgTest,
           //convert the virt_addr to a physical address using your page table;
           phys_addr = vir_to_phys(virt_addr);
 
-          WriteMem(phys_addr, PageSize, (int)*value);
+          WriteMem(phys_addr, PageSize, value);
 
 	  //update current offset into executable file
           *value += PageSize;
@@ -399,8 +399,8 @@ int AddrSpace::Initialize(OpenFile *executable, bool isProgTest,
           //on boundary
           phys_addr = vir_to_phys(virt_addr);
 
-          executable->ReadAt(phys_addr, end_virt_addr - virt_addr, (int)*value);
+          executable->ReadAt(phys_addr, end_virt_addr - virt_addr, *value);
        }
     }
-    return 0;
+*/    return 0;
 }

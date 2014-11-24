@@ -16,8 +16,8 @@ class SynchConsole
       void SynchPutString(char *c, int n);   //write the string to the terminal
       int SynchGetString(char *c, int n);   //Poll the console input string
 
-      void ReadAvail();
-      void WriteDone(); 
+      static void ReadAvail();
+      static void WriteDone(); 
 
    private:
       Semaphore *mutex;
