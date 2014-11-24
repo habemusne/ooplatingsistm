@@ -346,14 +346,16 @@ int AddrSpace::Initialize(OpenFile *executable, bool isProgTest,
           phys_addr = vir_to_phys(virt_addr);
 
           executable->ReadAt(phys_addr, end_virt_addr - virt_addr, file_off);
+
+          file_off += end_virt_addr - virt_addr;
        }
     }
 
-
+/*
    virt_addr = arg_vird;
    end_virt_addr = arg_vird + argumentSize;
 
-   if(noffH.initData.size > 0)
+   if(argumentSize > 0)
    {
        //if the section start address is not on a page boundary
        if(virt_addr % PageSize != 0)
@@ -363,9 +365,9 @@ int AddrSpace::Initialize(OpenFile *executable, bool isProgTest,
 	  //This section only exists in one section
 	  if(virt_addr/PageSize == (end_virt_addr)/PageSize)
 	  {
-	     executable->ReadAt(phys_addr, noffH.initData.size, file_off);
-             file_off += noffH.initData.size;
-	     virt_addr += noffH.initData.size;
+	     WriteAt(phys_addr, argumentSize, file_off);
+             file_off += argumentSize;
+	     virt_addr += argumentSize;
 	  }
 	  else  //this section lasts in more than 2 page
 	  {
@@ -398,5 +400,5 @@ int AddrSpace::Initialize(OpenFile *executable, bool isProgTest,
           executable->ReadAt(phys_addr, end_virt_addr - virt_addr, file_off);
        }
     }
-    return 0;
+*/    return 0;
 }
