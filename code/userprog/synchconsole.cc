@@ -1,5 +1,7 @@
 #include "synchconsole.h"
 
+synchConsole = new SynchConsole();
+
 static Semaphore *readAvail;
 static Semaphore *writeDone;
 
@@ -14,7 +16,7 @@ static void WriteDone()
 }
 
 
-SynchConsole::SynchConsole(char *readFile, char *writeFile)
+SynchConsole::SynchConsole()
 {
    readAvail = new Semaphore("readAvail", 1);
    writeDone = new Semaphore("writeAvail", 1);
@@ -49,9 +51,9 @@ char SynchConsole::SynchGetChar()
    return ch;
 }
 
-void SynchConsole::SynchPutString(char *c)
+void SynchConsole::SynchPutString(char *c, int n)
 {
-   for(int i = 0; c[i] != '\0'; i++)
+   for(int i = 0; i < n; i++)
    {
       SynchPutChar(c[i]);
    }

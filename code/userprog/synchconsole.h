@@ -7,13 +7,13 @@
 class SynchConsole
 {
    public:
-      SynchConsole(char *readFile, char *writeFile);
+      SynchConsole();
       ~SynchConsole();
 
       void SynchPutChar(char ch);
       char SynchGetChar();
 
-      void SynchPutString(char *c);   //write the string to the terminal
+      void SynchPutString(char *c, int n);   //write the string to the terminal
       int SynchGetString(char *c, int n);   //Poll the console input string
 
    private:
@@ -21,4 +21,5 @@ class SynchConsole
       Console* console;
 };
 
+extern SynchConsole *synchConsole;
 #endif

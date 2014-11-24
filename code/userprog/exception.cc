@@ -167,6 +167,32 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
    return spaceId;
 }
 
+
+static int syscallRead(int buffer_addr, int size, int id) {
+   
+   if(size == 0)
+      return 0;
+
+   if(id == 0)
+      return synchConsole->SynchGetString((char*) buffer_addr, size);
+   else
+      printf("Read from a file has not been impelemented\n");
+
+   return -1;   //the number of bytes actually read
+}
+
+static void syscallWrite(int buffer_addr, int size, int id) {
+   
+   if(size == 0)
+      return 0;
+
+   if(id == 0)
+      synchConsole->SynchPutString((char*) buffer_addr, size);
+   else
+      printf("Write to a file has not been impelemented\n");
+}
+
+
 void
 ExceptionHandler(ExceptionType which)
 {
@@ -194,6 +220,23 @@ ExceptionHandler(ExceptionType which)
 		    		  machine->ReadRegister(7));
  	incrementPC();
 	machine->WriteRegister(2, spaceId);
+    }
+    else if((which == SyscallException) && (type == SC_Read))
+    {
+       int read_num;
+       read_num = syscallRead(machine->ReadRegister(4),
+	               	      machine->ReadRegister(5),
+		              machine->ReadRegister(6));
+       incrementPC();
+       machine->WriteRegister(2, read_num);
+    }
+    else if((which == SyscallException) && (type == SC_Write))
+    {
+       syscallRead(machine->ReadRegister(4),
+	           machine->ReadRegister(5),
+		   machine->ReadRegister(6));
+       incrementPC();
+       machine->WriteRegister(2, 0);
     }
     else {
         printf("Unexpected user mode exception %d %d\n", which, type);
