@@ -31,6 +31,8 @@
 //	endian machine, and we're now running on a big endian machine.
 //----------------------------------------------------------------------
 
+bool WriteMem(int addr, int size, int value);
+
 static void
 SwapHeader (NoffHeader *noffH)
 {
@@ -351,9 +353,9 @@ int AddrSpace::Initialize(OpenFile *executable, bool isProgTest,
        }
     }
 
-/*
-   virt_addr = arg_vird;
-   end_virt_addr = arg_vird + argumentSize;
+   virt_addr = (unsigned int)arg_vird;
+   end_virt_addr = (unsigned int)arg_vird + argumentSize;
+   char** value = (char**)machine->ReadRegister(6);
 
    if(argumentSize > 0)
    {
@@ -365,14 +367,14 @@ int AddrSpace::Initialize(OpenFile *executable, bool isProgTest,
 	  //This section only exists in one section
 	  if(virt_addr/PageSize == (end_virt_addr)/PageSize)
 	  {
-	     WriteAt(phys_addr, argumentSize, file_off);
-             file_off += argumentSize;
+	     WriteMem(phys_addr, argumentSize, (int)*value);
+             *value += argumentSize;
 	     virt_addr += argumentSize;
 	  }
 	  else  //this section lasts in more than 2 page
 	  {
-             executable->ReadAt(phys_addr, PageSize - virt_addr % PageSize, file_off);
-    	     file_off += PageSize - virt_addr % PageSize;
+             WriteMem(phys_addr, PageSize - virt_addr % PageSize, (int)*value);
+    	     *value += PageSize - virt_addr % PageSize;
              virt_addr += PageSize - virt_addr % PageSize;
 	  }
        }
@@ -382,10 +384,10 @@ int AddrSpace::Initialize(OpenFile *executable, bool isProgTest,
           //convert the virt_addr to a physical address using your page table;
           phys_addr = vir_to_phys(virt_addr);
 
-          executable->ReadAt(phys_addr, PageSize, file_off);
+          WriteMem(phys_addr, PageSize, (int)*value);
 
 	  //update current offset into executable file
-          file_off += PageSize;
+          *value += PageSize;
 
           //update the virtual address that the code gets loaded at;
           virt_addr += PageSize;          
@@ -397,8 +399,8 @@ int AddrSpace::Initialize(OpenFile *executable, bool isProgTest,
           //on boundary
           phys_addr = vir_to_phys(virt_addr);
 
-          executable->ReadAt(phys_addr, end_virt_addr - virt_addr, file_off);
+          executable->ReadAt(phys_addr, end_virt_addr - virt_addr, (int)*value);
        }
     }
-*/    return 0;
+    return 0;
 }
