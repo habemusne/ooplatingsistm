@@ -147,7 +147,7 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
 
    /*NAN CHEN*/
    //space->Initialize(executable);
-   int spaceReturn = space->Initialize(executable, false, argv, i);
+   int spaceReturn = space->Initialize(executable, false, (char*)argv, i);
    if (spaceReturn == -1){
      printf("Error, unable to initialize address space for %s \n", filename);
      return 0;
