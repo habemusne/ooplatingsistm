@@ -197,6 +197,23 @@ static void syscallWrite(int buffer_addr, int size, int id) {
    }
 }
 
+static void pageFaultHandler()
+{
+   //the failing virtual address on an exception
+   ++stats->numPageFaults;
+   unsigned int faultAddress = machine->ReadRegister(BadVAddrReg);
+
+   unsigned int vpn = (unsigned)badAddr/PageSize;
+   int physPage = memoryManager->AllocPage();
+
+
+   pageTable[vpn].physicalPage = physPage;
+   pageTable[vpn].valid = true;
+   swapFile->ReadAt(&(machine->mainMemory[physPage*PageSize]), PageSize, pageTable[vpn].swapPage * PageSize);
+
+}
+
+
 
 void
 ExceptionHandler(ExceptionType which)
@@ -253,6 +270,9 @@ ExceptionHandler(ExceptionType which)
     }
     else if(which == PageFaultException)
     {
+       //DO not increment PC
+       //Run current instruction again
+       pageFaultHandler();
 
     }
     else if(which == ReadOnlyException)

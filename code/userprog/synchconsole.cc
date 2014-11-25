@@ -32,10 +32,9 @@ SynchConsole::~SynchConsole()
 void SynchConsole::SynchPutChar(char ch)
 {
    mutex->P();
-  // printf("*************mark1");
    console->PutChar(ch);  //echo the char!
-  // printf("*************mark2");
    writeDone->P();  //wait for write to finish
+   ++stats->numConsoleCharsWritten;
    mutex->V();
 }
 
@@ -46,7 +45,7 @@ char SynchConsole::SynchGetChar()
 
    readAvail->P();  //wait for character to arrive
    ch = console->GetChar();
-
+   ++stats->numConsoleCharsRead;
    mutex->V();
 
    return ch;
