@@ -355,7 +355,7 @@ int AddrSpace::Initialize(OpenFile *executable, bool isProgTest,
 
    virt_addr = (unsigned int)arg_vird;
    end_virt_addr = (unsigned int)arg_vird + argumentSize;
-   int value = machine->ReadRegister(6);
+   //int value = machine->ReadRegister(6);
 /*
    if(argumentSize > 0)
    {

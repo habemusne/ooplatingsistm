@@ -175,21 +175,25 @@ static int syscallRead(int buffer_addr, int size, int id) {
       return 0;
 
    if(id == 0)
-      return synchConsole->SynchGetString((char*) buffer_addr, size);
+      return synchConsole->SynchGetString(buffer_addr, size);
    else
-      printf("Read from a file has not been impelemented\n");
+      printf("Read from a file has not been impelemented %d\n", id);
 
    return -1;   //the number of bytes actually read
 }
 
 static void syscallWrite(int buffer_addr, int size, int id) {
-   
+   //printf("[syscallWrite] buffer_addr is %d, and size is %d\n", buffer_addr, size);
+
    if(size != 0)
    { 
-      if(id == 0)
-         synchConsole->SynchPutString((char*) buffer_addr, size);
+      if(id == 1){
+	 //printf("enter.....................\n");
+         synchConsole->SynchPutString(buffer_addr, size);
+      }
       else
-         printf("Write to a file has not been impelemented\n");
+         printf("Write to a file has not been impelemented %d\n", id);
+	 
    }
 }
 
@@ -242,6 +246,38 @@ ExceptionHandler(ExceptionType which)
        incrementPC();
        machine->WriteRegister(2, 0);
        
+    }
+    else if(which == NoException)
+    {
+
+    }
+    else if(which == PageFaultException)
+    {
+
+    }
+    else if(which == ReadOnlyException)
+    {
+
+    }
+    else if(which == BusErrorException)
+    {
+
+    }
+    else if(which == AddressErrorException)
+    {
+
+    }
+    else if(which == OverflowException)
+    {
+
+    }
+    else if(which == IllegalInstrException)
+    {
+
+    }
+    else if(which == NumExceptionException)
+    {
+
     }
     else {
         printf("Unexpected user mode exception %d %d\n", which, type);

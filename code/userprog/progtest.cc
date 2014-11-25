@@ -93,7 +93,6 @@ static void WriteDone(int arg) {
 void
 ConsoleTest (char *in, char *out)
 {
-printf("FLAG2");
     char ch;
 
     console = new Console(in, out, ReadAvail, WriteDone, 0);

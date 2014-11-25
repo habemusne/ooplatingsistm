@@ -1,13 +1,14 @@
 #include "synchconsole.h"
+#include "system.h"
 
 static Semaphore *readAvail;
 static Semaphore *writeDone;
 
-void SynchConsole::ReadAvail()
+static void ReadAvail(int arg)
 { 
    readAvail->V(); 
 }
-void SynchConsole::WriteDone() 
+static void WriteDone(int arg) 
 {
    writeDone->V();
 }
@@ -16,9 +17,8 @@ SynchConsole::SynchConsole(char *readFile, char *writeFile)
 {
    readAvail = new Semaphore("readAvail", 0);
    writeDone = new Semaphore("writeAvail", 0);
-   mutex = new Semaphore("mutex", 0);
-   printf("I believe the bug is here!!!!!!!!!!!!!!!!!\n");
-   console = new Console(readFile, writeFile, (VoidFunctionPtr)(&SynchConsole::ReadAvail), (VoidFunctionPtr)(&SynchConsole::WriteDone), 0);
+   mutex = new Semaphore("mutex", 1);
+   console = new Console(readFile, writeFile, ReadAvail, WriteDone, 0);
 }
 
 SynchConsole::~SynchConsole()
@@ -32,8 +32,10 @@ SynchConsole::~SynchConsole()
 void SynchConsole::SynchPutChar(char ch)
 {
    mutex->P();
-   console->PutChar(ch);
-   writeDone->P();
+  // printf("*************mark1");
+   console->PutChar(ch);  //echo the char!
+  // printf("*************mark2");
+   writeDone->P();  //wait for write to finish
    mutex->V();
 }
 
@@ -41,29 +43,39 @@ char SynchConsole::SynchGetChar()
 {
    char ch;
    mutex->P();
-   readAvail->P();
+
+   readAvail->P();  //wait for character to arrive
    ch = console->GetChar();
+
    mutex->V();
 
    return ch;
 }
 
-void SynchConsole::SynchPutString(char *c, int n)
+void SynchConsole::SynchPutString(int c, int n)
 {
+  // printf("*********************mark123");
+
+
+   char ch = 9;
    for(int i = 0; i < n; i++)
    {
-      SynchPutChar(c[i]);
+     // printf("*********************mark3");
+      ch = *currentThread->space->vir_to_phys(c + i);
+
+      SynchPutChar(ch);
    }
 }
 
-int SynchConsole::SynchGetString(char *c, int n)
+int SynchConsole::SynchGetString(int c, int n)
 {
    char ch;
    int i;
    for(i = 0; i < n; i++)
    {
       ch = SynchGetChar();
-      c[i] = ch;
+      //c[i] = ch;
+      *currentThread->space->vir_to_phys(c + i) = ch;
 
       if(ch == '\0')
     	 break;
