@@ -123,17 +123,22 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
       return 0;
    }
 
+   space = new AddrSpace(executable);
+
    /*NAN CHEN*/
    char* argument = new char[100];
    i = 0;
    ch = 0;
-   for (i = 0; i < 100; ++i){
-     char *physicalAddress = currentThread->space->vir_to_phys(argv + i);
-     ch = *physicalAddress;
-     argument[i] = (char) ch;
-     printf("%c", (char)ch);
-     if (ch == 0){
-       break;
+   if (argv > 0){
+printf("ReadRegister(6) = %d\n", machine->ReadRegister(6));
+     for (i = 0; i < 100; ++i){
+       char *physicalAddress = currentThread->space->vir_to_phys(argv + i);
+       ch = *physicalAddress;
+       argument[i] = ch;
+       printf("%c\n", (char)ch);
+       if (ch == 0){
+         break;
+       }
      }
    }
    printf("\n");
@@ -141,20 +146,26 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
      printf("Invalid argument %s\n", argument);
      return 0;
    }
-   /*NAN CHEN*/
 
-   //create address space
-   space = new AddrSpace(executable);
-
-   /*NAN CHEN*/
    //space->Initialize(executable);
-   int spaceReturn = space->Initialize(executable, false, (char*)argv, i);
+printf("exception.cc: i = %d\n", i);
+   int spaceReturn;
+   if (i > 0 && argument[i - 1] != 0){
+     spaceReturn = space->Initialize(executable, false, (char**)argv, i);
+   } else {
+     spaceReturn = space->Initialize(executable, false, 0, 0);
+   }
    if (spaceReturn == -1){
      printf("Error, unable to initialize address space for %s \n", filename);
      return 0;
    }
+   if (i > 0 && argument[i - 1] != 0){
+     machine->WriteRegister(4, i);
+     machine->WriteRegister(5, argv);
+   }
    delete argument;
    /*NAN CHEN*/
+
 
    //create new thread
    Thread* newThread = new Thread(filename);

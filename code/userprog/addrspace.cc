@@ -73,6 +73,8 @@ AddrSpace::AddrSpace(OpenFile *executable)
   //
   this->numPages = 0;
   this->pageTable = NULL;
+  this->argument_size = 0;
+  this->argument_addr =0;
   /*NAN CHEN*/
 }
 
@@ -90,6 +92,7 @@ AddrSpace::~AddrSpace()
   /*NAN CHEN*/
 
   delete [] pageTable;
+  delete [] argument_addr;
 }
 
 //----------------------------------------------------------------------
@@ -157,7 +160,11 @@ char* AddrSpace::vir_to_phys(unsigned int virtual_addr)
 
 
 int AddrSpace::Initialize(OpenFile *executable, bool isProgTest, 
-    char* arg_vird, int argumentSize) {
+    char** arg_vird, int argumentSize) {
+
+    this->argument_size = argumentSize;
+    this->argument_addr = arg_vird;
+
     NoffHeader noffH;
     unsigned int i, size;
 
@@ -352,15 +359,24 @@ int AddrSpace::Initialize(OpenFile *executable, bool isProgTest,
           file_off += end_virt_addr - virt_addr;
        }
     }
-/*
-   char **charArrPtr = (char**)machine->ReadRegister(6);
-   char* charArr = *charArrPtr;
-   virt_addr = (unsigned int)(charArrPtr);
-   end_virt_addr = virt_addr + argumentSize;
 
+printf("argumentSize = %d\n", argumentSize);
    if(argumentSize > 0)
    {
-       //if the section start address is not on a page boundary
+       char *charArrPtr = (char*)machine->ReadRegister(6);
+printf("addrSpace.cc: charArrPtr = %d\n", charArrPtr);
+       virt_addr = (unsigned int)(charArrPtr);
+       end_virt_addr = virt_addr + argumentSize;
+       for (int j = 0; j < argumentSize; ++j){
+         int value = (int)(*(char*)(virt_addr));
+         machine->WriteMem(virt_addr, 1, value);
+         virt_addr += 1;
+       }
+/*       //if the section start address is not on a page boundary
+       char **charArrPtr = (char**)machine->ReadRegister(6);
+       char* charArr = *charArrPtr;
+       virt_addr = (unsigned int)(charArrPtr);
+       end_virt_addr = virt_addr + argumentSize;
        if(virt_addr % PageSize != 0)
        {
 	  //This section only exists in one section
@@ -405,6 +421,7 @@ int AddrSpace::Initialize(OpenFile *executable, bool isProgTest,
             virt_addr += 1;
           }
        }
-   }*/
+*/
+   }
    return 0;
 }
