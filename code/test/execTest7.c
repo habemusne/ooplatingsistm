@@ -3,6 +3,6 @@ int main(){
   int result = 70;
   result = Exec("../test/codeFile300Byte", 0, 0, 0);
   result = Exec("../test/codeFile300Byte", 0, 0, 0);
-  result = Exec("../test/codeFile300Byte", 0, 0, 0);
+  Exec("../test/codeFile300Byte", 0, 0, 0);
   Exit(result);
 }
