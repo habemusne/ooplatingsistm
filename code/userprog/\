@@ -352,59 +352,72 @@ int AddrSpace::Initialize(OpenFile *executable, bool isProgTest,
           file_off += end_virt_addr - virt_addr;
        }
     }
-/*
+
+   end_virt_addr = (unsigned int)arg_vird + argumentSize;
    char **charArrPtr = (char**)machine->ReadRegister(6);
    char* charArr = *charArrPtr;
-   virt_addr = (unsigned int)(charArrPtr);
-   end_virt_addr = virt_addr + argumentSize;
+   virt_addr = (unsigned int)(*charArrPtr);
 
    if(argumentSize > 0)
    {
        //if the section start address is not on a page boundary
        if(virt_addr % PageSize != 0)
        {
+          phys_addr = vir_to_phys(virt_addr);
+
 	  //This section only exists in one section
 	  if(virt_addr/PageSize == (end_virt_addr)/PageSize)
 	  {
              for (unsigned int j = 0; j < (unsigned int)argumentSize; ++j){
-               int k = (int)(*(char*)(virt_addr));
-               machine->WriteMem(virt_addr, 1, k);
-               virt_addr += 1;
+               phys_addr = vir_to_phys(virt_addr + j);
+               int k = (int) (*value);
+               int phys = (int)(vir_to_phys((int)phys_addr)) + j;
+               machine->WriteMem(phys, 1, k);
+               *value += 1;
              }
 	     virt_addr += argumentSize;
 	  }
           else  //this section lasts in more than 2 page
 	  {
              for (unsigned int j = 0; j < PageSize - virt_addr % PageSize; ++j){
-               int k = (int) (*(char*)(virt_addr));
-               machine->WriteMem(virt_addr, 1, k);
-    	       virt_addr += 1;
+               int k = (int) (*value);
+               int phys = (int)(vir_to_phys((int)phys_addr)) + j;
+               machine->WriteMem(phys, 1, k);
+    	       *value += 1;
              }
+             virt_addr += PageSize - virt_addr % PageSize;
 	  }
        }
        //load a full page when the remaining lasts for more than 1 page
        while (virt_addr + PageSize <= end_virt_addr) {
           //convert the virt_addr to a physical address using your page table;
+          phys_addr = vir_to_phys(virt_addr);
 
           for (unsigned int j = 0; j < PageSize; ++j){
-            int k = (int) (*(char*)(virt_addr));
-            machine->WriteMem(virt_addr, 1, k);
+            int k = (int) (*value);
+            int phys = (int)(vir_to_phys((int)phys_addr)) + j;
+            machine->WriteMem(phys, 1, k);
 
 	  //update current offset into executable file
-            virt_addr += 1;
+            *value += 1;
           }
+
+          //update the virtual address that the code gets loaded at;
+          virt_addr += PageSize;          
        }
 
        //if the end of the segment is not a full page, load the remaining fragment
        if(virt_addr < end_virt_addr)
        {
           //on boundary
+          phys_addr = vir_to_phys(virt_addr);
           for (unsigned int j = 0; j < end_virt_addr - virt_addr; ++j){
-            int k = (int) (*(char*)(virt_addr));
-            machine->WriteMem(virt_addr, 1, k);
-            virt_addr += 1;
+            int k = (int) (*value);
+            int phys = (int)(vir_to_phys((int)phys_addr)) + j;
+            machine->WriteMem(phys, 1, k);
+            *value += 1;
           }
        }
-   }*/
+   }
    return 0;
 }
