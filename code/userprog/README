@@ -1,0 +1,35 @@
+CSE 120
+Project 2: Multiprogramming and I/O
+Team Members: SI LI (A97086177), Nan Chen (A97059448)
+
+Magic Numbers Defined in this Project:
+1. In machine.h: PhysicalPages = 40. This is in order to run our snake program
+2. In table.h: MAX_PROCESS = 128. This is the maximum number of entries that the process table can hold
+3. In exception.cc: MAX_FILE_SIZE = 100. This is the maximum size of the filename string passed into Exec()
+
+Part 1: Implement system call handling and multiprogramming.
+     In order to support multiprogramming, we need a data structure to manage the physical pages and page mapping. First of all, we added a MemoryManager class in memorymanager.cc. In this class, we used the routines of Bitmap to implement a physical page table that holds the information about which page has been allocated or not. We used binary semaphore to ensure that the instructions are atomic. Second, we need to allocate and deallocate space for multiple process correctly. We modified addrspace.cc and addrspace.h. In the AddrSpace class, we firstly calculate the number of pages needed for the process, and then we use a global MemoryManager instance to allocate the physical pages for these pages. And then we use the memset() function to zero out the physical pages pointed to by these virtual pages. Finally, we load the contents of the code and initialized data of the process to the allocated physical page. In this process, we have several conditions considered. Firstly, if the loading starts right from the boundary of the physical page, then just copy the whole page of the contents to the physical pages. Else, then the loading starts from fragments or ends at fragments.
+     In order to test our implementation for multiprogramming, we tried lots of different tests. First, we only run a single process which the file tries to calculate the sum of 0, 1, 2….500. In order to examine the returned result, I use Exit(int result) to return the result to the syscall handler and prints it to the console. The console displayed the correct result. For further complex, multi-process tests, I use Exec() functions to run several programs together after implementing Exec() and Exit(). They all display the correct information in the console, which means my multiprogramming implementation is correct.
+     For this part, Si wrote most of the implementations, and Nan was responsible to the testing. Then, we tried to verify our work together.
+
+Part 2: Implement the Exec and Exit system calls.
+     In order to implement the system calls, we tried to understand how the system call is called and returned. Exception.cc is the place where the CPU jumps from user program to kernel and handle the exceptions. For Exit(int), we can get the int parameter and print out the value in console so that we can check the value passed from user program to kernel. Then, the physical pages allocated by this process will be freed. Also, this process will be removed from table so that other processes can use this returned space. The last step is to call Thread->Finish() to stop this thread formally. For Exec(), we need to get 4 parameters passed in. They are all int type, so we need to cast them back to their original type. First, we need to get the file name from the address space of user process. Becuase we only have a pointer which points to the begin of file name in the user space, we need to an address translation and check various error conditions. After getting the name, we try to open the file. If it is executable, we try to allocate space for this new program and create a new thread to fork to run this new file. If there is no enough address space, the thread will be created, and an error message will be throwed. A table class has been created to manage the processes running in the CPU. Each process has a unique space ID and is stored in the table data structure waiting to be tracked.
+     We created 8 testers to test our multiprogramming, Exit(), and Exec() functionalities. These testers are execTest1.c, execTest2.c, execTest3.c, execTest4.c, execTest5.c, execTest6.c, execTest7.c, execTest8.c. They includes all the possible error conditions, such as, invalid filename, big file….. The value returned to console proves our implementation is correct.
+     Si and Nan completed this part in an equal work load.
+
+ 
+Part 3: We have tried for ten hours but we gave up. Humbly, We beg for 2 extra credits.
+ 
+Part 4: Implement the "read" and "write" system calls for console reads and writes
+     We create a synchConsole class to support the console read and write. Becuase the console or buffer is a critical section, we need to use locks to ensure the atomity and visiting order. The synchConsole class initializes a Console object which can put and get char from the console. Our synchConsole can get and put char by calling the functions in the console with the locks to block the reading or writing. In order to input and output a string (a series of char) to the console, we create two functions which have loops inside them to get and put char consectively. 
+     We use the echo.c file to test our implementation, and my program behave correctly according to the input and output.
+     Si wrote the implementation, and Nan helps to debug and test.
+
+
+
+Part 5: Handle user program exceptions that are not system calls.
+     These system calls can be handled in the exception.cc file. The parameter inside the ExceptionHandler function indicates what exception to be handled. Then, we could use if condition statement to handle different exceptions separately. The readme only requires us to ouput an error message in the console and kill the process. But for NoException, we actually do not need to kill the current process.
+    In each of the exception handling blocks (if loops), we simply do two things: firstly print out the error message about what exception is met, and secondly call our implementation of Exit(), passing in a -1 as the parameter. \
+    We did the testing for both Illegal Instruction Exception (in ../test/exceptionTest1) and Address Error Exception (in ../test/exceptionTest2). In the first test, we Exec() a program in which we divide 1 by 0. In the second test, we Exec() a program in which we dereference an int that is equal to -1. Both tests runs expectedly. 
+    Si and Nan pair programmed on this part.
+

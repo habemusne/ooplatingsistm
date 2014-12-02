@@ -37,7 +37,8 @@ public:
     void RestoreState();		// info on a context switch
 
     /*NAN CHEN*/
-    int Initialize(OpenFile *executable, bool isProgTesti, char** arg_vird, int argumentSize);
+    //int Initialize(OpenFile *executable, bool isProgTesti, char** arg_vird, int argumentSize);
+    int Initialize(OpenFile *executable, bool isProgTest);
     /*NAN CHEN*/
 
 private:
@@ -45,8 +46,8 @@ private:
     // for now!
     unsigned int numPages;		// Number of pages in the virtual
     // address space
-    int argument_size;
-    char** argument_addr;
+    //int argument_size;
+    //char** argument_addr;
 };
 
 #endif // ADDRSPACE_H

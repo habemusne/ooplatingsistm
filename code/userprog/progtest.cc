@@ -35,7 +35,7 @@ StartProcess(char *filename)
     AddrSpace *space;
 
     if (executable == NULL) {
-        printf("Unable to open file %s\n", filename);
+        printf("ERROR MESSAGE: Unable to open file %s\n", filename);
         return;
     }
 
@@ -45,12 +45,10 @@ StartProcess(char *filename)
     space = new AddrSpace(executable);
     synchConsole = new SynchConsole(0, 0);
 
-    int spaceId = table->Alloc_mainThread(currentThread);
-    printf("%d\n", (int)currentThread);
-    printf("%d\n", (int)table->GetIndex(currentThread));
-    printf("[progtest] The spaceID of %s is %d\n", currentThread->getName(), spaceId);
+    table->Alloc_mainThread(currentThread);
 
-    space->Initialize(executable, true, 0, 0);
+    //space->Initialize(executable, true, 0, 0);
+    space->Initialize(executable, true);
     currentThread->space = space;
    
 

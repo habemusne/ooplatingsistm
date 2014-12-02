@@ -31,7 +31,7 @@
 //	endian machine, and we're now running on a big endian machine.
 //----------------------------------------------------------------------
 
-bool WriteMem(int addr, int size, int value);
+//bool WriteMem(int addr, int size, int value);
 
 static void
 SwapHeader (NoffHeader *noffH)
@@ -73,8 +73,8 @@ AddrSpace::AddrSpace(OpenFile *executable)
   //
   this->numPages = 0;
   this->pageTable = NULL;
-  this->argument_size = 0;
-  this->argument_addr =0;
+  //this->argument_size = 0;
+  //this->argument_addr =0;
   /*NAN CHEN*/
 }
 
@@ -92,7 +92,7 @@ AddrSpace::~AddrSpace()
   /*NAN CHEN*/
 
   delete [] pageTable;
-  delete [] argument_addr;
+  //delete [] argument_addr;
 }
 
 //----------------------------------------------------------------------
@@ -159,11 +159,10 @@ char* AddrSpace::vir_to_phys(unsigned int virtual_addr)
 
 
 
-int AddrSpace::Initialize(OpenFile *executable, bool isProgTest, 
-    char** arg_vird, int argumentSize) {
+int AddrSpace::Initialize(OpenFile *executable, bool isProgTest){
 
-    this->argument_size = argumentSize;
-    this->argument_addr = arg_vird;
+    //this->argument_size = argumentSize;
+   // this->argument_addr = arg_vird;
 
     NoffHeader noffH;
     unsigned int i, size;
@@ -174,20 +173,16 @@ int AddrSpace::Initialize(OpenFile *executable, bool isProgTest,
         SwapHeader(&noffH);
     ASSERT(noffH.noffMagic == NOFFMAGIC);
 
-    printf("[machine.h] Total memory size: %d\n", MemorySize);
-    printf("[machine.h] PageSize: %d\n", PageSize);
-
-
     // how big is address space?
+    //size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
+    //       + UserStackSize + argumentSize; // we need to increase the size
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
-           + UserStackSize + argumentSize; // we need to increase the size
+           + UserStackSize; // we need to increase the size
 
-    printf("Acutal address Space Size: %d\n", size);
     // to leave room for the stack
     numPages = divRoundUp(size, PageSize);
     size = numPages * PageSize;
 
-    printf("numPages = %d, size allocated = numPages * PageSize = %d\n", numPages, size);
 
     //if it is the main thread
     if(isProgTest)
@@ -231,7 +226,7 @@ int AddrSpace::Initialize(OpenFile *executable, bool isProgTest,
         //
         if (pageTable[i].physicalPage == -1) 
 	{
-           printf ("addrSpace.cc: No enough physical page available\n");
+           printf ("ERROR MESSAGE: addrSpace.cc: No enough physical page available\n");
            for (unsigned int j = 0; j < i; ++j) {
               memoryManager->FreePage(pageTable[j].physicalPage);
            }
@@ -359,7 +354,7 @@ int AddrSpace::Initialize(OpenFile *executable, bool isProgTest,
           file_off += end_virt_addr - virt_addr;
        }
     }
-
+/*
 printf("argumentSize = %d\n", argumentSize);
    if(argumentSize > 0)
    {
@@ -372,7 +367,7 @@ printf("addrSpace.cc: charArrPtr = %d\n", charArrPtr);
          machine->WriteMem(virt_addr, 1, value);
          virt_addr += 1;
        }
-/*       //if the section start address is not on a page boundary
+       //if the section start address is not on a page boundary
        char **charArrPtr = (char**)machine->ReadRegister(6);
        char* charArr = *charArrPtr;
        virt_addr = (unsigned int)(charArrPtr);
@@ -421,7 +416,7 @@ printf("addrSpace.cc: charArrPtr = %d\n", charArrPtr);
             virt_addr += 1;
           }
        }
-*/
    }
+*/
    return 0;
 }

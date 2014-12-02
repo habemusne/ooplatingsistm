@@ -29,6 +29,8 @@
 #include "machine.h"
 #include "synchconsole.h"
 
+#define	MAX_FILE_SIZE	100
+
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -67,8 +69,7 @@ static void incrementPC()
 
 static void syscallExit(int status) 
 {
-   printf("[syscallExit] Thread %s is exiting\n", currentThread->getName());
-   printf("[syscallExit] The result returned from EXIT: %d\n", status);
+   printf("EXIT RETURN: [syscallExit] The result returned from EXIT: %d\n", status);
 
    //do not do ~space again, delete call destructor
    delete currentThread->space;
@@ -89,43 +90,39 @@ static void ProcessStart(AddrSpace *space) {
 static SpaceId syscallExec(int name, int argc, int argv, int opt) {
    OpenFile *executable;
    AddrSpace *space;
-   printf("[syscallExec] In syscallExec()\n");
 
    //name is the virtual address where stores the filename
    //change to physical address to get filename string
-   char *filename = new char[100];  //maximum size 100
+   char *filename = new char[MAX_FILE_SIZE];  //maximum size 100
    int i = 0; 
    int ch;
-   for(i = 0; i < 100; i++) 
+   for(i = 0; i < MAX_FILE_SIZE; i++) 
    {
       //int physaddr = (pageTable[(name + i) / PageSize]->physicalPage) * PageSize + (name + i) % PageSize;
       char *physicalAddress = currentThread->space->vir_to_phys(name + i);
       ch = *physicalAddress;
-      printf("%c", (char)ch);
       filename[i] = (char) ch;
       if(ch == 0)
          break;
    }
 
-   printf("\n");
    //invalid name
    /*NAN CHEN: Changed i == 99 to i >= 99*/
-   if(i >= 99 && ch != 0)
+   if(i >= MAX_FILE_SIZE - 1 && ch != 0)
    {
-      printf("Invalid file name %s\n", filename);
+      printf("ERROR MESSAGE: Invalid file name %s\n", filename);
       return 0;
    }
  
    //check if the file is executable
    executable = fileSystem->Open(filename);
    if(executable == NULL) {
-      printf("Error, Unable to open file %s\n", filename);
+      printf("ERROR MESSAGE, Unable to open file %s\n", filename);
       return 0;
    }
 
    space = new AddrSpace(executable);
-
-   /*NAN CHEN*/
+/*
    char* argument = new char[100];
    i = 0;
    ch = 0;
@@ -147,6 +144,10 @@ printf("ReadRegister(6) = %d\n", machine->ReadRegister(6));
      return 0;
    }
 
+   if (i > 0 && argument[i - 1] != 0){
+     machine->WriteRegister(4, i);
+     machine->WriteRegister(5, argv);
+   }
    //space->Initialize(executable);
 printf("exception.cc: i = %d\n", i);
    int spaceReturn;
@@ -159,13 +160,15 @@ printf("exception.cc: i = %d\n", i);
      printf("Error, unable to initialize address space for %s \n", filename);
      return 0;
    }
-   if (i > 0 && argument[i - 1] != 0){
-     machine->WriteRegister(4, i);
-     machine->WriteRegister(5, argv);
-   }
    delete argument;
-   /*NAN CHEN*/
+*/
 
+   int spaceReturn;
+   spaceReturn = space->Initialize(executable, false);
+   if (spaceReturn == -1){
+     printf("ERROR MESSAGE, unable to initialize address space for %s \n", filename);
+     return 0;
+   }
 
    //create new thread
    Thread* newThread = new Thread(filename);
@@ -175,7 +178,6 @@ printf("exception.cc: i = %d\n", i);
 
    delete executable;   // close file
 
-   printf("[syscallExec] The spaceID of %s is %d\n", newThread->getName(), spaceId);
    return spaceId;
 }
 
@@ -188,7 +190,7 @@ static int syscallRead(int buffer_addr, int size, int id) {
    if(id == 0)
       return synchConsole->SynchGetString(buffer_addr, size);
    else
-      printf("Read from a file has not been impelemented %d\n", id);
+      printf("ERROR MESSAGE: Read from a file has not been impelemented %d\n", id);
 
    return -1;   //the number of bytes actually read
 }
@@ -203,7 +205,7 @@ static void syscallWrite(int buffer_addr, int size, int id) {
          synchConsole->SynchPutString(buffer_addr, size);
       }
       else
-         printf("Write to a file has not been impelemented %d\n", id);
+         printf("ERROR MESSAGE: Write to a file has not been impelemented %d\n", id);
 	 
    }
 }
@@ -232,23 +234,18 @@ ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
 
-    printf("ExceptionType = %d, type = %d\n", (int)which, type);
-
     if ((which == SyscallException) && (type == SC_Halt)) {
         DEBUG('a', "Shutdown, initiated by user program.\n");
-	printf("[exceptionHandler] SC_Halt\n");
 
         interrupt->Halt();
     }
     else if((which == SyscallException) && (type == SC_Exit))
     {
-    	printf("[exceptionHandler] SC_Exit\n");
 
 	syscallExit(machine->ReadRegister(4));
     }
     else if((which == SyscallException) && (type == SC_Exec))
     {
-    	printf("[exceptionHandler] SC_Exec\n");
 
 	int spaceId = syscallExec(machine->ReadRegister(4),
 	            		  machine->ReadRegister(5),
@@ -280,55 +277,55 @@ ExceptionHandler(ExceptionType which)
     }
     else if(which == NoException)
     {
-      printf("No Exception\n");
+      printf("EXCEPTION: No Exception\n");
     }
     else if(which == PageFaultException)
     {
        //DO not increment PC
        //Run current instruction again
        //pageFaultHandler();
-       printf("Page Fault Exception \n");
+       printf("EXCEPTION: Page Fault Exception \n");
        syscallExit(-1);
 
     }
     else if(which == ReadOnlyException)
     {
-       printf("Read Only Exception \n");
+       printf("EXCEPTION: Read Only Exception \n");
        syscallExit(-1);
 
     }
     else if(which == BusErrorException)
     {
-       printf("Bus Error Exception \n");
+       printf("EXCEPTION: Bus Error Exception \n");
        syscallExit(-1);
 
     }
     else if(which == AddressErrorException)
     {
-       printf("Address Error Exception \n");
+       printf("EXCEPTION: Address Error Exception \n");
        syscallExit(-1);
 
     }
     else if(which == OverflowException)
     {
-       printf("Overflow Exception \n");
+       printf("EXCEPTION: Overflow Exception \n");
        syscallExit(-1);
 
     }
     else if(which == IllegalInstrException)
     {
-       printf("Illegal Instruction Exception \n");
+       printf("EXCEPTION: Illegal Instruction Exception \n");
        syscallExit(-1);
 
     }
     else if(which == NumExceptionTypes)
     {
-       printf("Number Exception Types: %d\n", type);
+       printf("EXCEPTION: Number Exception Types: %d\n", type);
        syscallExit(-1);
 
     }
     else {
-        printf("Unexpected user mode exception %d %d\n", which, type);
+        printf("EXCEPTION: Unexpected user mode exception %d %d\n", which, type);
         ASSERT(FALSE);
     }
 }
