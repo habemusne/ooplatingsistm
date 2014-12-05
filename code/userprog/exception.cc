@@ -91,6 +91,8 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
    OpenFile *executable;
    AddrSpace *space;
 
+printf("syscallExec: name is in page %d\n", name / PageSize);
+
    //name is the virtual address where stores the filename
    //change to physical address to get filename string
    char *filename = new char[MAX_FILE_SIZE];  //maximum size 100
@@ -102,9 +104,14 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
       char *physicalAddress = currentThread->space->vir_to_phys(name + i);
       ch = *physicalAddress;
       filename[i] = (char) ch;
-      if(ch == 0)
+printf("%c", ch);
+      if(ch == 0){
+printf("ch == 0!!!!\n");
          break;
+      }
    }
+
+printf("\ni = %d, ch = %c\n", i, ch);
 
    //invalid name
    /*NAN CHEN: Changed i == 99 to i >= 99*/
@@ -176,7 +183,7 @@ printf("exception.cc: i = %d\n", i);
    newThread->space = space;
    newThread->Fork((VoidFunctionPtr) ProcessStart, (int) newThread->space);
 
-   delete executable;   // close file
+   //delete executable;   // close file
 
    return spaceId;
 }
@@ -210,9 +217,8 @@ static void syscallWrite(int buffer_addr, int size, int id) {
    }
 }
 
-//static void pageFaultHandler()
-//{
-   //the failing virtual address on an exception
+static void preparePageOnDemand(){
+
    //++stats->numPageFaults;
    //unsigned int faultAddress = machine->ReadRegister(BadVAddrReg);
 
@@ -223,11 +229,13 @@ static void syscallWrite(int buffer_addr, int size, int id) {
    //pageTable[vpn].physicalPage = physPage;
    //pageTable[vpn].valid = true;
    //swapFile->ReadAt(&(machine->mainMemory[physPage*PageSize]), PageSize, pageTable[vpn].swapPage * PageSize);
-
-
-//}
-
-
+   unsigned int faultAddress = machine->ReadRegister(BadVAddrReg);
+   printf("fault page = %d\n", faultAddress / PageSize);
+   int result = currentThread->space->handlePageDemand(faultAddress);
+   if (result == -1){
+     syscallExit(-1);
+   }
+}
 
 void
 ExceptionHandler(ExceptionType which)
@@ -285,7 +293,7 @@ ExceptionHandler(ExceptionType which)
        //Run current instruction again
        //pageFaultHandler();
        printf("EXCEPTION: Page Fault Exception \n");
-       syscallExit(-1);
+       preparePageOnDemand();
 
     }
     else if(which == ReadOnlyException)

@@ -16,6 +16,7 @@
 #include "copyright.h"
 #include "filesys.h"
 #include "memorymanager.h"
+#include "noff.h"
 
 #define UserStackSize		1024 	// increase this as necessary!
 
@@ -40,11 +41,14 @@ public:
     //int Initialize(OpenFile *executable, bool isProgTesti, char** arg_vird, int argumentSize);
     int Initialize(OpenFile *executable, bool isProgTest);
     /*NAN CHEN*/
+    int handlePageDemand(int faultAddr);
 
 private:
     TranslationEntry *pageTable;	// Assume linear page table translation
     // for now!
     unsigned int numPages;		// Number of pages in the virtual
+    OpenFile *executable;
+    NoffHeader noffH;
     // address space
     //int argument_size;
     //char** argument_addr;
