@@ -100,9 +100,12 @@ printf("syscallExec: name is in page %d\n", name / PageSize);
    int ch;
    for(i = 0; i < MAX_FILE_SIZE; i++) 
    {
-      //int physaddr = (pageTable[(name + i) / PageSize]->physicalPage) * PageSize + (name + i) % PageSize;
-      char *physicalAddress = currentThread->space->vir_to_phys(name + i);
-      ch = *physicalAddress;
+      //char *physicalAddress = currentThread->space->vir_to_phys(name + i);
+      //ch = *physicalAddress;
+      bool result = machine->ReadMem(name + i, 1, &ch);
+      if (result == FALSE){
+        result = machine->ReadMem(name + i, 1, &ch);
+      }
       filename[i] = (char) ch;
 printf("%c", ch);
       if(ch == 0){

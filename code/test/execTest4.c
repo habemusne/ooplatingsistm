@@ -2,6 +2,7 @@
 int main(){
   int result = 40;
   char* argv = "ThisisafilewithfreakinglongfilenameThisisafilewithfreakinglongfilenameThisisafilewithfreakinglongfilenameThisisafilewithfreakinglongfilenameThisisafilewithfreakinglongfilenameThisisafilewithfreakinglongfilenameThisisafilewithfreakinglongfilename.c";
-  result = Exec("../test/halt.c", 1, argv, 0);
+  char* filename = "../test/halt";
+  result = Exec(filename, 1, argv, 0);
   Exit(result);
 }
