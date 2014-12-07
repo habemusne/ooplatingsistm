@@ -236,6 +236,7 @@ static void preparePageOnDemand(){
    printf("fault page = %d\n", faultAddress / PageSize);
    int result = currentThread->space->handlePageDemand(faultAddress);
    if (result == -1){
+printf("result == -1\n");
      syscallExit(-1);
    }
 }
@@ -252,7 +253,6 @@ ExceptionHandler(ExceptionType which)
     }
     else if((which == SyscallException) && (type == SC_Exit))
     {
-
 	syscallExit(machine->ReadRegister(4));
     }
     else if((which == SyscallException) && (type == SC_Exec))

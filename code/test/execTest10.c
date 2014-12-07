@@ -5,5 +5,6 @@ int main(){
   result = Exec(filename, 0, 0, 0);
   result += Exec(filename, 0, 0, 0);
   result += Exec(filename, 0, 0, 0);
+  result += Exec(filename, 0, 0, 0);
   Exit(result);
 }
