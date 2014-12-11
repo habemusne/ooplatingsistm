@@ -20,7 +20,7 @@ char cmd[16];
 #define MAX_ROWS 23
 #define MAX_COLS 79
 
-#define NUM_WORM_SEGS 4
+#define NUM_WORM_SEGS 10
 
 #define DOWN  0
 #define UP    1

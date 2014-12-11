@@ -8,6 +8,7 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
+#include <map>
 #include "copyright.h"
 #include "system.h"
 #include "console.h"
@@ -16,11 +17,14 @@
 #include "table.h"
 #include "memorymanager.h"
 #include "synchconsole.h"
+#include "backingstore.h"
+#include "list.h"
 
 Table *table;
 MemoryManager *memoryManager;
-
+std::map<AddrSpace*, BackingStore*> *BSMap;
 SynchConsole *synchConsole;
+List *physPageQueue;
 
 //----------------------------------------------------------------------
 // StartProcess
@@ -41,14 +45,20 @@ StartProcess(char *filename)
 
     //initialize the memoryManager with pre-defined physical page size
     table = new Table(MAX_PROCESS);
+    BSMap = new std::map<AddrSpace*, BackingStore*>();
+
     memoryManager = new MemoryManager(NumPhysPages);
-    space = new AddrSpace(executable);
     synchConsole = new SynchConsole(0, 0);
 
-    table->Alloc_mainThread(currentThread);
+    physPageQueue = new List();
 
+    int spaceId = table->Alloc_mainThread(currentThread);
+    space = new AddrSpace(true, spaceId);
+
+    BackingStore* bs = new BackingStore(space);
+    (*BSMap)[space] = bs;
     //space->Initialize(executable, true, 0, 0);
-    space->Initialize(executable, true);
+    space->Initialize(executable);
     currentThread->space = space;
    
 

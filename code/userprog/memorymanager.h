@@ -19,5 +19,4 @@ class MemoryManager
 };
 
 extern MemoryManager *memoryManager;
-
 #endif

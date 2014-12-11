@@ -19,12 +19,13 @@
 #include "noff.h"
 
 #define UserStackSize		1024 	// increase this as necessary!
-
+class MemoryManager;
 extern MemoryManager* memoryManager;
+
 
 class AddrSpace {
 public:
-    AddrSpace(OpenFile *executable);	// Create an address space,
+    AddrSpace(bool isProg, int spaceId);	// Create an address space,
     // initializing it with the program
     // stored in the file "executable"
     ~AddrSpace();			// De-allocate an address space
@@ -39,11 +40,18 @@ public:
 
     /*NAN CHEN*/
     //int Initialize(OpenFile *executable, bool isProgTesti, char** arg_vird, int argumentSize);
-    int Initialize(OpenFile *executable, bool isProgTest);
+    int Initialize(OpenFile *executable);
     /*NAN CHEN*/
-    int handlePageDemand(int faultAddr);
+    int readFromExecutable(int faultAddr);
+
+    unsigned int getNumPages();
+
+    bool* execOrBS;//0 indicates need to be load from exec, 1 from bs
+    int* phys_page_i_to_virt_page;//which virt_page is possessing ith phys_page
+    int spaceId;
 
 private:
+    bool isProgtest;
     TranslationEntry *pageTable;	// Assume linear page table translation
     // for now!
     unsigned int numPages;		// Number of pages in the virtual

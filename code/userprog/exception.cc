@@ -21,6 +21,7 @@
 // All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
+#include <map>
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
@@ -28,8 +29,13 @@
 #include "memorymanager.h"
 #include "machine.h"
 #include "synchconsole.h"
+#include "backingstore.h"
+#include "list.h"
 
 #define	MAX_FILE_SIZE	100
+
+extern std::map<AddrSpace*, BackingStore*> *BSMap;
+extern List *physPageQueue;
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -69,11 +75,12 @@ static void incrementPC()
 
 static void syscallExit(int status) 
 {
+   stats->Print();
    printf("EXIT RETURN: [syscallExit] The result returned from EXIT: %d\n", status);
 
-   //do not do ~space again, delete call destructor
-   delete currentThread->space;
+   delete (*BSMap)[currentThread->space];
 
+   delete currentThread->space;
    table->Release(table->GetIndex(currentThread));
    currentThread->Finish();
    ASSERT(FALSE);
@@ -91,7 +98,7 @@ static SpaceId syscallExec(int name, int argc, int argv, int opt) {
    OpenFile *executable;
    AddrSpace *space;
 
-printf("syscallExec: name is in page %d\n", name / PageSize);
+//**printf("syscallExec: name is in page %d\n", name / PageSize);
 
    //name is the virtual address where stores the filename
    //change to physical address to get filename string
@@ -107,14 +114,11 @@ printf("syscallExec: name is in page %d\n", name / PageSize);
         result = machine->ReadMem(name + i, 1, &ch);
       }
       filename[i] = (char) ch;
-printf("%c", ch);
       if(ch == 0){
-printf("ch == 0!!!!\n");
          break;
       }
    }
 
-printf("\ni = %d, ch = %c\n", i, ch);
 
    //invalid name
    /*NAN CHEN: Changed i == 99 to i >= 99*/
@@ -131,58 +135,22 @@ printf("\ni = %d, ch = %c\n", i, ch);
       return 0;
    }
 
-   space = new AddrSpace(executable);
-/*
-   char* argument = new char[100];
-   i = 0;
-   ch = 0;
-   if (argv > 0){
-printf("ReadRegister(6) = %d\n", machine->ReadRegister(6));
-     for (i = 0; i < 100; ++i){
-       char *physicalAddress = currentThread->space->vir_to_phys(argv + i);
-       ch = *physicalAddress;
-       argument[i] = ch;
-       printf("%c\n", (char)ch);
-       if (ch == 0){
-         break;
-       }
-     }
-   }
-   printf("\n");
-   if (i >= 99 && ch != 0){
-     printf("Invalid argument %s\n", argument);
-     return 0;
-   }
 
-   if (i > 0 && argument[i - 1] != 0){
-     machine->WriteRegister(4, i);
-     machine->WriteRegister(5, argv);
-   }
-   //space->Initialize(executable);
-printf("exception.cc: i = %d\n", i);
-   int spaceReturn;
-   if (i > 0 && argument[i - 1] != 0){
-     spaceReturn = space->Initialize(executable, false, (char**)argv, i);
-   } else {
-     spaceReturn = space->Initialize(executable, false, 0, 0);
-   }
-   if (spaceReturn == -1){
-     printf("Error, unable to initialize address space for %s \n", filename);
-     return 0;
-   }
-   delete argument;
-*/
+   //create new thread
+   Thread* newThread = new Thread(filename);
+   int spaceId = table->Alloc(newThread);
+   space = new AddrSpace(FALSE, spaceId);
 
    int spaceReturn;
-   spaceReturn = space->Initialize(executable, false);
+   spaceReturn = space->Initialize(executable);
    if (spaceReturn == -1){
      printf("ERROR MESSAGE, unable to initialize address space for %s \n", filename);
      return 0;
    }
 
-   //create new thread
-   Thread* newThread = new Thread(filename);
-   int spaceId = table->Alloc(newThread);
+   BackingStore *bs = new BackingStore(space);
+   (*BSMap)[space] = bs;
+
    newThread->space = space;
    newThread->Fork((VoidFunctionPtr) ProcessStart, (int) newThread->space);
 
@@ -232,12 +200,77 @@ static void preparePageOnDemand(){
    //pageTable[vpn].physicalPage = physPage;
    //pageTable[vpn].valid = true;
    //swapFile->ReadAt(&(machine->mainMemory[physPage*PageSize]), PageSize, pageTable[vpn].swapPage * PageSize);
+
+   ++(stats->numPageFaults);
+
    unsigned int faultAddress = machine->ReadRegister(BadVAddrReg);
-   printf("fault page = %d\n", faultAddress / PageSize);
-   int result = currentThread->space->handlePageDemand(faultAddress);
-   if (result == -1){
-printf("result == -1\n");
-     syscallExit(-1);
+   int fault_page = faultAddress/PageSize;
+   machine->pageTable[fault_page].virtualPage = fault_page;
+   machine->pageTable[fault_page].physicalPage = memoryManager->AllocPage();
+
+   //If there is no more physical pages, do assmt part 2!
+   if (machine->pageTable[fault_page].physicalPage == -1){
+     printf("NON ERROR MESSAGE: physical page number is full\n");
+
+     //int victim_phys_page = (fault_page + 1) % NumPhysPages;
+     int victim_phys_page = (int)physPageQueue->Remove(); //select the earliest phyPage used
+     int victim_virt_page = currentThread->space->phys_page_i_to_virt_page[victim_phys_page];
+     ASSERT(victim_virt_page != -1);
+
+  printf("victim_phys_page = %d, victim_virt_page = %d, fault_page = %d\n",
+  victim_phys_page, victim_virt_page, fault_page);
+
+     //If fault page is not dirty, then there hasn't been any writes on it. So
+     //  just free the page and the return
+     if (machine->pageTable[victim_virt_page].dirty == FALSE){
+  printf("victim_virt_page is not dirty\n");
+       memoryManager->FreePage(victim_phys_page);
+       machine->pageTable[victim_virt_page].valid = FALSE;
+     }
+
+     //If fault page is dirty, then there has been some writes on it. 
+     //  So write it to the backing store, and then free the page
+     else {
+  printf("victim_virt_page is dirty\n");
+
+       //(after creation), write contents of victim virtual page to swap file
+       (*BSMap)[currentThread->space]->PageOut(&machine->pageTable[victim_virt_page]);
+       ++(stats->numPageOuts);
+
+       currentThread->space->execOrBS[victim_virt_page] = TRUE;
+
+       machine->pageTable[victim_virt_page].valid = FALSE;
+       machine->pageTable[victim_virt_page].dirty = FALSE;
+       memoryManager->FreePage(victim_phys_page);
+     }
+   }
+
+   //If there is available physical space, do assmt2
+   else {
+  printf("There is some physical space!\n");
+
+     physPageQueue->Append((void*)(machine->pageTable[fault_page].physicalPage));
+
+     currentThread->space->
+       phys_page_i_to_virt_page[machine->pageTable[fault_page].physicalPage]
+         = fault_page;
+     if (currentThread->space->execOrBS[fault_page] == TRUE){
+  printf("Loading from swap file\n");
+       (*BSMap)[currentThread->space]->PageIn(&machine->pageTable[fault_page]);
+       ++(stats->numPageIns);
+     }
+
+     else {
+  printf("Loading from executable file\n");
+       int result = currentThread->space->readFromExecutable(faultAddress);
+       ++(stats->numPageIns);
+
+       if (result == -1){
+         printf("result == -1\n");
+         syscallExit(-1);
+       }
+     }
+     machine->pageTable[fault_page].valid = TRUE;
    }
 }
 
