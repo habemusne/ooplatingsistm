@@ -210,20 +210,16 @@ static void preparePageOnDemand(){
 
    //If there is no more physical pages, do assmt part 2!
    if (machine->pageTable[fault_page].physicalPage == -1){
-     printf("NON ERROR MESSAGE: physical page number is full\n");
 
      //int victim_phys_page = (fault_page + 1) % NumPhysPages;
      int victim_phys_page = (int)physPageQueue->Remove(); //select the earliest phyPage used
      int victim_virt_page = currentThread->space->phys_page_i_to_virt_page[victim_phys_page];
      ASSERT(victim_virt_page != -1);
 
-  printf("victim_phys_page = %d, victim_virt_page = %d, fault_page = %d\n",
-  victim_phys_page, victim_virt_page, fault_page);
 
      //If fault page is not dirty, then there hasn't been any writes on it. So
      //  just free the page and the return
      if (machine->pageTable[victim_virt_page].dirty == FALSE){
-  printf("victim_virt_page is not dirty\n");
        memoryManager->FreePage(victim_phys_page);
        machine->pageTable[victim_virt_page].valid = FALSE;
      }
@@ -231,7 +227,6 @@ static void preparePageOnDemand(){
      //If fault page is dirty, then there has been some writes on it. 
      //  So write it to the backing store, and then free the page
      else {
-  printf("victim_virt_page is dirty\n");
 
        //(after creation), write contents of victim virtual page to swap file
        (*BSMap)[currentThread->space]->PageOut(&machine->pageTable[victim_virt_page]);
@@ -247,7 +242,6 @@ static void preparePageOnDemand(){
 
    //If there is available physical space, do assmt2
    else {
-  printf("There is some physical space!\n");
 
      physPageQueue->Append((void*)(machine->pageTable[fault_page].physicalPage));
 
@@ -255,13 +249,11 @@ static void preparePageOnDemand(){
        phys_page_i_to_virt_page[machine->pageTable[fault_page].physicalPage]
          = fault_page;
      if (currentThread->space->execOrBS[fault_page] == TRUE){
-  printf("Loading from swap file\n");
        (*BSMap)[currentThread->space]->PageIn(&machine->pageTable[fault_page]);
        ++(stats->numPageIns);
      }
 
      else {
-  printf("Loading from executable file\n");
        int result = currentThread->space->readFromExecutable(faultAddress);
        ++(stats->numPageIns);
 
@@ -328,7 +320,7 @@ ExceptionHandler(ExceptionType which)
        //DO not increment PC
        //Run current instruction again
        //pageFaultHandler();
-       printf("EXCEPTION: Page Fault Exception \n");
+       //printf("EXCEPTION: Page Fault Exception \n");
        preparePageOnDemand();
 
     }

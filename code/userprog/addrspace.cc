@@ -196,7 +196,6 @@ int AddrSpace::Initialize(OpenFile *executableFile){
     // to leave room for the stack
     numPages = divRoundUp(size, PageSize);
     size = numPages * PageSize;
-  printf("numPages = %d\n", numPages);
 
     //if it is the main thread
 //    if(isProgtest)
@@ -219,11 +218,6 @@ int AddrSpace::Initialize(OpenFile *executableFile){
     for (i = 0; i < NumPhysPages; ++i){
       phys_page_i_to_virt_page[i] = -1;
     }
-
-//    if (numPages > NumPhysPages){
-//      printf ("ERROR MESSAGE: addrSpace.cc: No enough physical page available\n");
-//      return -1;
-//    }
 
     for (i = 0; i < numPages; i++) {
         //pageTable[i].virtualPage = i; //sets virtual page
@@ -271,24 +265,8 @@ int AddrSpace::readFromExecutable(int faultAddr){
    unsigned int load_end;
    unsigned int load_at_position;
 
-  printf("code_file_off = %d, code_virt_addr %d, code_end_virt_addr = %d\n",
-  code_file_off, code_virt_addr, code_end_virt_addr);
-  printf("data_file_off = %d, data_virt_addr = %d, dara_end_virt_addr = %d\n",
-    data_file_off, data_virt_addr, data_end_virt_addr);
-  printf("code_page_start = %d, code_page_end = %d, ", code_page_start, code_page_end);
-  printf("data_page_start = %d, data_page_end = %d, ", data_page_start, data_page_end);
-  printf("fault_page = %d, faultAddr = %d\n", fault_page, faultAddr);
-
-   //if ((code_page_start - code_page_end) + (data_page_start - data_page_end)
-   //  > NumPhysPages || fault_page > NumPhysPages){
-   //  printf("ERROR MESSAGE: not enough physical pages\n");
-   //  return -1;
-   //}
-
    this->pageTable[fault_page].valid = TRUE;
-  printf("FLAG1\n");
    bzero(vir_to_phys(PageSize * fault_page), PageSize);
-  printf("FLAG2\n");
 
    //If the faulting page locates at the page where code section ends and
    //  data section starts, load the remaining portion of code section and
@@ -303,8 +281,6 @@ int AddrSpace::readFromExecutable(int faultAddr){
      }
      load_offset = code_end_virt_addr % PageSize;
 
-  printf("#1, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
-  load_offset, load_at_position);
 
      validateMem(load_start, load_offset, load_at_position);
      this->executable->ReadAt(vir_to_phys(load_start), load_offset, load_at_position);
@@ -319,8 +295,6 @@ int AddrSpace::readFromExecutable(int faultAddr){
          load_offset = this->noffH.initData.size;
          load_at_position = data_file_off;
 
-  printf("#2, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
-  load_offset, load_at_position);
 
          validateMem(load_start, load_offset, load_at_position);
          this->executable->ReadAt(vir_to_phys(load_start), load_offset, load_at_position);
@@ -334,8 +308,6 @@ int AddrSpace::readFromExecutable(int faultAddr){
          load_offset = load_end - load_start;
          load_at_position = data_file_off;
 
-  printf("#3, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
-    load_offset, load_at_position);
  
          validateMem(load_start, load_offset, load_at_position);
          this->executable->ReadAt(vir_to_phys(load_start), load_offset, load_at_position);
@@ -393,8 +365,6 @@ int AddrSpace::readFromExecutable(int faultAddr){
        load_end = load_start + load_offset;
        load_at_position = code_file_off;
 
-  printf("#6, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
-    load_offset, load_at_position);
 
        validateMem(load_start, load_offset, load_at_position);
        this->executable->ReadAt(vir_to_phys(load_start), load_offset, load_at_position);
@@ -410,8 +380,6 @@ int AddrSpace::readFromExecutable(int faultAddr){
          }
          load_at_position = data_file_off;
 
-  printf("#7, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
-    load_offset, load_at_position);
 
          this->executable->ReadAt(vir_to_phys(load_start), load_offset, load_at_position);
        }
@@ -422,8 +390,6 @@ int AddrSpace::readFromExecutable(int faultAddr){
        load_offset = code_end_virt_addr % PageSize;
        load_at_position = code_file_off + load_start;
 
-  printf("#8, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
-    load_offset, load_at_position);
 
        this->executable->ReadAt(vir_to_phys(load_start), load_offset, load_at_position);
 
@@ -438,8 +404,6 @@ int AddrSpace::readFromExecutable(int faultAddr){
          }
          load_at_position = data_file_off;
 
-printf("#9, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
-  load_offset, load_at_position);
 
          this->executable->ReadAt(vir_to_phys(load_start), load_offset, load_at_position);
        }
@@ -452,13 +416,9 @@ printf("#9, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
        load_offset = PageSize - code_virt_addr % PageSize;
        load_at_position = code_file_off;
 
-  printf("#10, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
-    load_offset, load_at_position);
 
        validateMem(load_start, load_offset, load_at_position);
 
-  printf("#11, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
-    load_offset, load_at_position);
 
        this->executable->ReadAt(vir_to_phys(load_start), load_offset, load_at_position);
          
@@ -471,13 +431,9 @@ printf("#9, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
        load_offset = PageSize;
        load_at_position = code_file_off + load_start - code_virt_addr;
 
-  printf("#12, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
-   load_offset, load_at_position);
 
        validateMem(load_start, load_offset, load_at_position);
 
-  printf("#13, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
-    load_offset, load_at_position);
 
        this->executable->ReadAt(vir_to_phys(load_start), load_offset, load_at_position);
      }
@@ -497,8 +453,6 @@ printf("#9, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
          load_end = code_end_virt_addr;
          load_offset = load_end - load_start;
 
-  printf("#14, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
-    load_offset, load_at_position);
 
          this->executable->ReadAt(vir_to_phys(load_start), load_offset, load_at_position);
        }
@@ -506,8 +460,6 @@ printf("#9, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
        load_offset = data_end_virt_addr - load_start;
        load_at_position = data_file_off + load_start - data_virt_addr;
 
-  printf("#15, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
-    load_offset, load_at_position);
 
        validateMem(load_start, load_offset, load_at_position);
        this->executable->ReadAt(vir_to_phys(load_start), load_offset, load_at_position);
@@ -519,8 +471,6 @@ printf("#9, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
        load_offset = data_end_virt_addr - load_start;
        load_at_position = data_file_off + load_start - data_virt_addr;
 
-  printf("#16, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
-    load_offset, load_at_position);
 
        this->executable->ReadAt(vir_to_phys(load_start), load_offset, load_at_position);
      }
@@ -537,8 +487,6 @@ printf("#9, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
          load_end = code_end_virt_addr;
          load_offset = load_end - load_start;
 
-  printf("#17, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
-    load_offset, load_at_position);
 
          this->executable->ReadAt(vir_to_phys(load_start), load_offset, load_at_position);
        }
@@ -547,8 +495,6 @@ printf("#9, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
        load_offset = load_end - load_start;
        load_at_position = data_file_off;
 
-  printf("#18, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
-    load_offset, load_at_position);
 
        validateMem(load_start, load_offset, load_at_position);
        this->executable->ReadAt(vir_to_phys(load_start), load_offset, load_at_position);
@@ -559,8 +505,6 @@ printf("#9, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
        load_offset = PageSize;
        load_at_position = data_file_off + load_start - data_virt_addr;
 
-  printf("#19, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
-    load_offset, load_at_position);
 
        validateMem(load_start, load_offset, load_at_position);
        this->executable->ReadAt(vir_to_phys(load_start), load_offset, load_at_position);
@@ -569,11 +513,10 @@ printf("#9, load_start = %d, load_offset = %d, load_pos = %d\n", load_start,
 
    //Clear the stack frame
    else {
-       printf("Page faults outside of code and data section\n");
+   
    }
 
 
-  printf("**PageDemand() Finished\n\n");
 
   return 0;
 }
