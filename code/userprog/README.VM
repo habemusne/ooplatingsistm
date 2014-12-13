@@ -1,0 +1,222 @@
+CSE120 Project 3
+Nan Chen A97059448
+Si Li A97086177
+
+Part 1
+
+     We firstly changed our code to initialize all PTEs as invalid, to zero
+out the physical page frames, to preload the address space with the code and
+data segments from the file, to prevent programs that require too much memory
+from proceeding, and to add a method called "preparePageOnDemand" in
+exception.cc, and finally a method called "readFromExecutable" in addrspace.cc.
+We followed every step from 1.1 - 1.3 here.
+
+     Then we implement the demand paging. When a PageFaultError occurs, 
+exception.cc uses preparePageOnDemand() to handle it. The preparePageOnDemand()
+calls readFromExecutable() in currentThread->space, passing in the faulting
+address read from register 39 (BadVAddrReg). 
+
+     readFromExecutable() then reads from the executable file to the physical 
+memory. It firstly calculates the faulting page, the code starting pages, code
+ending page, data staring page, and data ending page. Then it zeros out the
+whole page frame (128 bytes). Then it handles the reading execution. There are
+too many cases to consider, so I will omit some of the explanation:
+
+If the faulting page locates in where code ending page and data starting page are:
+	If the code starting page and code ending page are the same:
+		read from code start address to code end address
+	Otherwise:
+		read from page boundary to code ending address
+	Then, if the data starting page is the same as data ending page:
+		read from data starting address to data ending address
+	Otherwise, 
+		read from data starting address to page boundary
+	(Note: the data starting address is not equivalent to the code ending 
+	address. Therefore, both readings are separate. Therefore, it handles
+	the case where there are blanks between code ending and data starting)
+
+Else If the faulting page locates in where data ending page and code starting pages are:
+	Do in opposite order of the first case
+	(Note: This handles the case where data starts earlier than code)
+
+Else If the code starting page <= faulting page <= code ending page:
+	If code starting page == faulting page == code ending page
+		load from code starting address to code ending address
+	Else if code starting page < faulting page == code ending page:
+		load from page boundary to code ending address
+	Else if code starting page == faulting page < code ending page:
+		load from code starting address to page boundary
+	Else:
+		load from page boundary to page boundary
+
+Else If data starting page <= faulting page <= data ending page:
+	do the same as previous case except that we check for data pages
+	instead of code pages
+
+Else:
+	Skip. We have already bzero()-ed this page at the beginning.
+
+
+     That's all for part 1. We tested this part on all of our testers from last
+assignment (except for snake.c). After debugging, they all run well. 
+
+Nan implemented this part.
+
+
+Part 2
+
+For part 2, we firstly removed the code that allocates page frames and
+preinstalls virtual -physical translations when setting up the page table.
+Thence add code to allocate physical pages on-the-fly when page fault occurs.
+These are the very beginning steps demonstrated in the write up. 
+
+For the rest parts, we need to: (1) implement BackingStore (2) build
+relationship between AddrSpace and BackingStore (3) be able to use FIFO or
+random replacement to select victim pages (4) be able to recognize which
+virtual page is using which physical page (5) be able to recognize where
+the pages should be read from, executable or swap file. 
+
+Firstly we implemented the BackingStore class as the following: (1) it contains
+a constructor, a destructor, a PageOut method, a PageIn method, a private
+pointer to the address space, and a private pointer to its backing store file.
+(2) The constructor firstly saves the pointer to address space passed in, then
+it uses ostringstream and const_cast to construct a filename as ¿~swap[spaceId]¿
+(for example, if it is associated with address space with ID 3, then it creates
+the filename ¿~swap3¿), then it uses fileSystem to create the file, saving the
+file to its class variable. (3) The destructor calls fileSystem->Remove() to
+remove the swap file. Note that it does not delete the address space pointer.
+(4) The PageOut and PageIn methods writes to or reads from the swap file. 
+
+Because the backingstore class needs to know the address space¿s id, we added 
+a spaceId field in the AddrSpace class. This public int is initialized in the
+AddrSpace() constructor. 
+
+Secondly, we need to guarantee less coupling, so we don¿t want to let AddrSpace
+and BackingStore directly correlate with each other. To solve this problem, we 
+decide to use a std::map because (1) we cannot use the Table class or
+MemoryManager class because we want to store the relationship between two
+pointers (2) we don¿t have time to implement another class and (3) there shall
+not be too many processes in this assignment, which means that the wasted
+memory by empty entries of the hash map is not that big. So we modified the
+StartProcess() in protest.cc and Exec() in exception.cc. In exception.cc, we
+declare a global pointer to a std::map called BSMap, and initialize it in 
+StartProcess(). This map stores the one-to-one relationships between address
+space and backing store. 
+
+Thirdly, we implemented FIFO using the List class in code/thread/. We choose 
+this class because it has an Append() method which simulates Enqueue()
+operation, and an Remove() which simulates Dequeue() operation. We firstly
+declared a global variable List *physPageQueue, and initialized it in
+StartProcess(). When a physical page is used, we Append() the physical 
+page number to physPageQueue. When a physical page cannot be allocated, 
+we select next victim physical page by calling Remove(). 
+
+Fourthly, It is not trivial to recognize the virtual-page-user of each
+physical page. If we loop through machine->pageTable to find the virtual
+page associated with a particular physical page, we might find a previous
+virtual page that uses that physical page. So in AddrSpace, we added a int
+array field called ¿phys_page_i_to_virt_page¿. The name might be too long
+but I just don¿t have any other proper words to summarize its function.
+In exception.cc, (1) When we need to get which physical page is being used
+by the victim virtual page number i, we use phys_page_i_to_virt_page[i] to
+get it. (2) When a physical page number i is going to be allocated, 
+phys_page_i_to_virt_page[i] is set to the faulting page.
+
+Fifthly, we to be able to recognize where the pages should be read from,
+executable or swap file. So in AddrSpace class, we added an boolean array, 
+called ¿execOrBS¿, with size of the number of virtual pages needed by a 
+process. If virtual page [i] has been written to swap file, then 
+execOrBS[i] = TRUE. If it has not, then execOrBS = FALSE. In exception.cc,
+(1) after each PageIn(), we set the corresponding virtual page i as TRUE (2)
+when we need to load a faulting page i from physical memory, we check if 
+execOrBs[i] == TRUE. If it is, then use PageOut(). If it is not, then use
+ReadFromExecutable() in AddrSpace. 
+
+Finally, we can start handling page faults without concern. The logic is:
+
+If memoryManager cannot allocate any physical page:
+	If the victim virtual page selected is not dirty:
+		tell memoryManager to FreePage() this victim virtual page
+		Set the valid bit of this victim virtual page to FALSE
+		return and let the program re-execute the faulting instruction
+	Otherwise:
+		PageOut() this victim virtual page
+		Update execOrBS array to mark this page as in the swap file
+		Set valid and dirty bit of this victim virtual page to FALSE
+		tell memoryManager to FreePage() this victim virtual page
+		return and let the program re-execute the faulting instruction
+Otherwise: 
+	Update physPageQueue for FIFO purpose
+	Update phys_page_i_to_virt_page array to update the usage of the victim 
+	physical page
+	if the faulting page is previously written to swap file:
+		PageIn() this faulting page
+	Otherwise:
+		readFromExecutable() this faulting page
+	Set the valid bit of this faulting page to TRUE
+	return and let the program re-execute the faulting instruction
+
+After debugging, the program works well even with NumPhysPages = 4 (including snake.c)
+
+Nan implemented this part.
+
+
+Part 3
+     In part 1 and part 2, we successfully implement demand page and page
+     replacement so that we could run programs which are much bigger that
+     the physical memory we have. In order to test that we only initialize
+     pages that are referenced on demand, we write one test program that
+     references all of the pages in memory, and a second test program that
+     only references some of the pages. 
+    The tester part3Tester1.c tries to reference all of the pages in memory.
+    Not only all the code instructions are referenced, but also all the data
+    in the data section are referenced. For this idea, we initialize a very 
+    large gloabl int array, insert int number into the array, and reference
+    each data to calculate the sum. In order to verify its correctness, we 
+    check the addition sum returned in the end. 
+     The tester part3Tester2.c tries to only reference some of the pages.
+     Not all the code instructions are referenced and demand in the code 
+     section. Also, only a small part of the data are referenced For this 
+     idea, we initialize a very large gloabl 2 dimentional int array, insert
+     int number into the array, and reference data from different rows and 
+     colums to calculate the sum. In order to verify its correctness, we
+     check the addition sum returned in the end. 
+     The tester part3tester3.c tries to test the functionality of backstore.
+     First, we declare a global int array, and the file will reserve spaces
+     in the code section. During the running time, we are tryting to insert 
+     values into the array. However, all the newly inserted values will be 
+     saved in the back store file. If the functionality of back store is 
+     correct, then the returned results will be correct. 0 return will be
+     returned. 
+	The tester part3Random tries to test the random reference and poor
+	locality. We declare a large 2 dimensional int array, then we generate
+	random numbers to access the int in the array. In a while loop that
+	run for 1000 times, we sum up all the numbers and return to exit.
+
+Si implemented this part.
+
+Part 4
+As required, we try to maintain counters of page faults and pagein and pageout
+events. These counters are global variables, and they can be incremented when
+needed. Firstly we added two fields, numPageOuts and numPageIns, in 
+machine/stats.h and print them in Stats::Print(). Then, when we enter the
+PreparePageOnDemand(), we increment the numPageFaults counter. When we get
+into the ¿if page is dirty¿ block, we increment the numPageOuts counter.
+When we get into the block where we need to copy contents of executable or
+swap to the physical memory, we increment the numPageIns counter. 
+
+Nan implemented this part.
+
+
+Physical memory size: 32 pages.
+Page replacement policy: FIFO (Queue)
+Program        PageFaults         PageOuts         PageIns
+halt              3                  0               3
+matmult           182                47              107
+sort              9632               4361            4832
+part3Tester1      13750              1772            6891
+part3Tester2      2344               349             1188
+part3tester3      15826              7182            7929
+part3Random       73374              32399           36703
+array             23                 0               23
+
